@@ -22,24 +22,16 @@ func main() {
 		return
 	}
 	for _, f := range fs {
-		str := ""
-
-		str += f.Mode().String()
-		str += " "
-
-		str += fmt.Sprintf("%7d", f.Size())
-		str += " "
-
-		str += fmtTime(f.ModTime())
-		str += " "
-
-		str += f.Name()
+		sep := " "
+		name := f.Name()
 		if f.IsDir() {
-			str += "/"
+			name += "/"
 		}
-		str += "\t"
-
-		fmt.Println(str)
+		fmt.Printf("%s%s%7d%s%s%s%s\n",
+			f.Mode().String(), sep,
+			f.Size(), sep,
+			fmtTime(f.ModTime()), sep,
+			name)
 	}
 }
 
