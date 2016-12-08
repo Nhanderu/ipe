@@ -7,7 +7,13 @@ import (
 )
 
 func main() {
-	fs, err := ioutil.ReadDir(os.Args[1])
+	var src string
+	if len(os.Args) > 1 {
+		src = os.Args[1]
+	} else {
+		src = "."
+	}
+	fs, err := ioutil.ReadDir(src)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
