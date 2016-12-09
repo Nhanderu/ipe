@@ -22,7 +22,7 @@
   - [ ] `-g`
   - [ ] `-G`, `--no-group`
   - [x] `-h`, `--human-readable`
-  - [ ] `--si`
+  - [x] `--si`
   - [ ] `-H`, `--dereference-command-line`
   - [ ] `--dereference-command-line-symlink-to-dir`
   - [ ] `--indicator-style`
