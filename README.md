@@ -62,6 +62,7 @@
   - [ ] `--help`
   - [ ] `--version`
 - [ ] Make special features (even change flag and args)
+- [ ] Add colors
 - [ ] Add [Git integration](https://github.com/libgit2/git2go)
 - [ ] Change it into a lib
 
