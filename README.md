@@ -5,7 +5,7 @@
 - [x] List directory contents
 - [ ] Add all flags and args `ls` has
   - [x] `-a`, `--all`
-  - [ ] `-A`, `--almost-all`
+  - [ ] `-A`, `--almost-all` (IGNORED)
   - [ ] `--author`
   - [ ] `-b`, `--escape`
   - [ ] `--block-size`
@@ -62,6 +62,9 @@
   - [ ] `--help`
   - [ ] `--version`
 - [ ] Make special features (even change flag and args)
+  - [ ] Get all files by default, but separate dotfiles from the rest
+  - [ ] `-a` to don't separate the files
+  - [ ] `-A` to don't get dotfiles
 - [ ] Add colors
 - [ ] Add [Git integration](https://github.com/libgit2/git2go)
 - [ ] Change it into a lib
