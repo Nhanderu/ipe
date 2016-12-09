@@ -10,10 +10,15 @@ import (
 )
 
 const (
-	kilobyte = 1024
-	megabyte = kilobyte * 1024
-	gigabyte = megabyte * 1024
-	terabyte = gigabyte * 1024
+	kilobyte2 = 1024
+	megabyte2 = kilobyte2 * 1024
+	gigabyte2 = megabyte2 * 1024
+	terabyte2 = gigabyte2 * 1024
+
+	kilobyte10 = 1000
+	megabyte10 = kilobyte10 * 1000
+	gigabyte10 = megabyte10 * 1000
+	terabyte10 = gigabyte10 * 1000
 )
 
 var (
@@ -21,6 +26,7 @@ var (
 	separatorFlag     = kingpin.Flag("separator", "").Default(" ").String()
 	allFlag           = kingpin.Flag("all", "do not hide entries starting with .").Short('a').Bool()
 	humanReadableFlag = kingpin.Flag("human-readable", "print sizes in human readable format (e.g., 1K 234M 2G)").Short('h').Bool()
+	siFlag            = kingpin.Flag("si", "print sizes in human readable format, but use powers of 1000 not 1024").Bool()
 	inodeFlag         = kingpin.Flag("inode", "print index number of each file").Short('i').Bool()
 )
 
@@ -44,7 +50,9 @@ func main() {
 
 		var size string
 		if *humanReadableFlag {
-			size = fmt.Sprintf("%s%s", humanSize(f.Size()), *separatorFlag)
+			size = fmt.Sprintf("%s%s", humanSize2(f.Size()), *separatorFlag)
+		} else if *siFlag {
+			size = fmt.Sprintf("%s%s", humanSize10(f.Size()), *separatorFlag)
 		} else {
 			size = fmt.Sprintf("%d%s", f.Size(), *separatorFlag)
 		}
@@ -78,16 +86,24 @@ func fmtTime(t time.Time) string {
 	return str
 }
 
-func humanSize(s int64) string {
-	if s < kilobyte {
+func humanSize2(s int64) string {
+	return humanSize(s, kilobyte2, megabyte2, gigabyte2, terabyte2)
+}
+
+func humanSize10(s int64) string {
+	return humanSize(s, kilobyte10, megabyte10, gigabyte10, terabyte10)
+}
+
+func humanSize(s, kb, mb, gb, tb int64) string {
+	if s < kb {
 		return fmt.Sprintf("%6dB", s)
-	} else if s < megabyte {
-		return fmt.Sprintf("%5.1dKB", s/kilobyte)
-	} else if s < gigabyte {
-		return fmt.Sprintf("%5.1dMB", s/megabyte)
-	} else if s < terabyte {
-		return fmt.Sprintf("%5.1dGB", s/gigabyte)
+	} else if s < mb {
+		return fmt.Sprintf("%5.1dKB", s/kb)
+	} else if s < gb {
+		return fmt.Sprintf("%5.1dMB", s/mb)
+	} else if s < tb {
+		return fmt.Sprintf("%5.1dGB", s/gb)
 	} else {
-		return fmt.Sprintf("%5.1dTB", s/terabyte)
+		return fmt.Sprintf("%5.1dTB", s/tb)
 	}
 }

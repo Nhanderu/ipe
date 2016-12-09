@@ -65,6 +65,8 @@
   - [ ] Get all files by default, but separate dotfiles from the rest
   - [ ] `-a` to don't separate the files
   - [ ] `-A` to don't get dotfiles
+  - [ ] Tree view
+  - [ ] Separator of columns in long view
 - [ ] Add colors
 - [ ] Add [Git integration](https://github.com/libgit2/git2go)
 - [ ] Change it into a lib
