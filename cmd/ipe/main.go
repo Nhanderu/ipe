@@ -17,9 +17,10 @@ const (
 )
 
 var (
-	inodeFlag     = kingpin.Flag("inode", "print index number of each file").Short('i').Bool()
-	srcArg        = kingpin.Arg("src", "the directory to list contents").Default(".").String()
-	separatorFlag = kingpin.Flag("separator", "").Default(" ").String()
+	srcArg            = kingpin.Arg("src", "the directory to list contents").Default(".").String()
+	separatorFlag     = kingpin.Flag("separator", "").Default(" ").String()
+	inodeFlag         = kingpin.Flag("inode", "print index number of each file").Short('i').Bool()
+	humanReadableFlag = kingpin.Flag("human-readable", "print sizes in human readable format (e.g., 1K 234M 2G)").Short('h').Bool()
 )
 
 func main() {
@@ -43,12 +44,18 @@ func main() {
 			inode = ""
 		}
 
-		fmt.Printf("%s%s%s%s%s%s%s%s\n",
+		var size string
+		if *humanReadableFlag {
+			size = fmt.Sprintf("%s%s", humanSize(f.Size()), *separatorFlag)
+		} else {
+			size = fmt.Sprintf("%d%s", f.Size(), *separatorFlag)
+		}
+
+		fmt.Printf("%s%s%s%s%s%s%s\n",
 			inode,
 			f.Mode().String(),
 			*separatorFlag,
-			humanSize(f.Size()),
-			*separatorFlag,
+			size,
 			fmtTime(f.ModTime()),
 			*separatorFlag,
 			name)

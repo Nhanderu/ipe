@@ -21,7 +21,7 @@
   - [ ] `--full-time`
   - [ ] `-g`
   - [ ] `-G`, `--no-group`
-  - [ ] `-h`, `--human-readable`
+  - [x] `-h`, `--human-readable`
   - [ ] `--si`
   - [ ] `-H`, `--dereference-command-line`
   - [ ] `--dereference-command-line-symlink-to-dir`
