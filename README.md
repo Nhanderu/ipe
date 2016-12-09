@@ -4,7 +4,7 @@
 
 - [x] List directory contents
 - [ ] Add all flags and args `ls` has
-  - [ ] `-a`, `--all`
+  - [x] `-a`, `--all`
   - [ ] `-A`, `--almost-all`
   - [ ] `--author`
   - [ ] `-b`, `--escape`
