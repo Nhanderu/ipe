@@ -1,5 +1,9 @@
 # Ipê
 
+A replacement for `ls` with some special features, like tree view and Git integration. Works as terminal program or Go library.
+
+Inspired by [jacwah/oak][1] and [ogham/exa][2].
+
 ### To-do list
 
 - [x] List directory contents
@@ -68,11 +72,16 @@
   - [ ] Tree view
   - [ ] Separator of columns in long view
 - [ ] Add colors
-- [ ] Add [Git integration](https://github.com/libgit2/git2go)
+- [ ] Add [Git integration][3]
+  - [ ] Ignore "Git ignored" files by default
+  - [ ] Show files' Git status 
 - [ ] Change it into a lib
 
 ### License
 
-This project code is in the public domain. See the [LICENSE file][1].
+This project code is in the public domain. See the [LICENSE file][4].
 
-[1]: https://github.com/Nhanderu/ype/blob/master/LICENSE
+[1]: https://github.com/jacwah/oak/
+[2]: https://github.com/ogham/exa/
+[3]: https://github.com/libgit2/git2go
+[4]: https://github.com/Nhanderu/ype/blob/master/LICENSE
