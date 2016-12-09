@@ -3,10 +3,10 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
 	"time"
 
 	"github.com/Nhanderu/tuyo/convert"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 const (
@@ -16,31 +16,41 @@ const (
 	terabyte = gigabyte * 1024
 )
 
+var (
+	inodeFlag     = kingpin.Flag("inode", "print index number of each file").Short('i').Bool()
+	srcArg        = kingpin.Arg("src", "the directory to list contents").Default(".").String()
+	separatorFlag = kingpin.Flag("separator", "").Default(" ").String()
+)
+
 func main() {
-	var src string
-	if len(os.Args) > 1 {
-		src = os.Args[1]
-	} else {
-		src = "."
-	}
-	fs, err := ioutil.ReadDir(src)
+	kingpin.Parse()
+
+	fs, err := ioutil.ReadDir(*srcArg)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
 	}
-	for _, f := range fs {
-		sep := " "
+	for i, f := range fs {
 		name := f.Name()
 		if f.IsDir() {
 			name += "/"
 		}
-		fmt.Printf("%s%s%s%s%s%s%s\n",
+
+		var inode string
+		if *inodeFlag {
+			inode = fmt.Sprintf("%d%s", i+1, *separatorFlag)
+		} else {
+			inode = ""
+		}
+
+		fmt.Printf("%s%s%s%s%s%s%s%s\n",
+			inode,
 			f.Mode().String(),
-			sep,
+			*separatorFlag,
 			humanSize(f.Size()),
-			sep,
+			*separatorFlag,
 			fmtTime(f.ModTime()),
-			sep,
+			*separatorFlag,
 			name)
 	}
 }
