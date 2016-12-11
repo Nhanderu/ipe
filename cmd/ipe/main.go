@@ -29,6 +29,7 @@ var (
 	humanReadableFlag = kingpin.Flag("human-readable", "print sizes in human readable format (e.g., 1K 234M 2G)").Short('h').Bool()
 	siFlag            = kingpin.Flag("si", "print sizes in human readable format, but use powers of 1000 not 1024").Bool()
 	inodeFlag         = kingpin.Flag("inode", "print index number of each file").Short('i').Bool()
+	ignoreFlag        = kingpin.Flag("ignore", "to not list implied entries matching shell PATTERN").Short('I').Regexp()
 )
 
 func main() {
@@ -40,15 +41,18 @@ func main() {
 		return
 	}
 	for i, f := range fs {
+
+		n := f.Name()
+		if (!*allFlag && n[0] == '.') ||
+			(*ignoreFlag != nil && (*ignoreFlag).MatchString(n)) {
+			continue
+		}
+
 		var name string
 		if *classifyFlag {
 			name = f.ClassifiedName()
 		} else {
-			name = f.Name()
-		}
-
-		if !*allFlag && name[0] == '.' {
-			continue
+			name = n
 		}
 
 		var size string

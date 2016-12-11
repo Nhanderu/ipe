@@ -31,7 +31,7 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
   - [ ] `--dereference-command-line-symlink-to-dir`
   - [ ] `--indicator-style`
   - [x] `-i`, `--inode`
-  - [ ] `-I`, `--ignore`
+  - [x] `-I`, `--ignore`
   - [ ] `-k`
   - [ ] `-l`
   - [ ] `-L`, `--dereference`
