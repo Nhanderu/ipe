@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"time"
 
+	"github.com/Nhanderu/ipe"
 	"github.com/Nhanderu/tuyo/convert"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
@@ -33,7 +33,7 @@ var (
 func main() {
 	kingpin.Parse()
 
-	fs, err := ioutil.ReadDir(*srcArg)
+	fs, err := ipe.ReadDir(*srcArg)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
