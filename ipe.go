@@ -2,6 +2,7 @@ package ipe
 
 import "os"
 import "fmt"
+import "path/filepath"
 
 type File struct {
 	os.FileInfo
@@ -53,6 +54,30 @@ func ReadDir(path string) ([]File, error) {
 	rlist := make([]File, len(list))
 	for _, file := range list {
 		rlist = append(rlist, File{file})
+	}
+	return rlist, nil
+}
+
+func ReadRecurDir(path string) ([]RecurFile, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	list, err := f.Readdir(-1)
+	f.Close()
+	if err != nil {
+		return nil, err
+	}
+	rlist := make([]RecurFile, len(list))
+	for _, file := range list {
+		var innerFiles []RecurFile
+		if file.IsDir() {
+			innerFiles, err = ReadRecurDir(filepath.Join(path, file.Name()))
+			if err != nil {
+				return nil, err
+			}
+		}
+		rlist = append(rlist, RecurFile{File{file}, innerFiles})
 	}
 	return rlist, nil
 }
