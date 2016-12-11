@@ -63,8 +63,6 @@ func main() {
 		var inode string
 		if *inodeFlag {
 			inode = fmt.Sprintf("%d%s", i+1, *separatorFlag)
-		} else {
-			inode = ""
 		}
 
 		fmt.Printf("%s%s%s%s%s%s%s\n",
