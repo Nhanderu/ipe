@@ -20,7 +20,7 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
   - [ ] `-d`, `--directory`
   - [ ] `-D`, `--dired`
   - [ ] `-f`
-  - [ ] `-F`, `--classify`
+  - [x] `-F`, `--classify`
   - [ ] `--format`
   - [ ] `--full-time`
   - [ ] `-g`

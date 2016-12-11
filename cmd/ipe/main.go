@@ -25,6 +25,7 @@ var (
 	srcArg            = kingpin.Arg("src", "the directory to list contents").Default(".").String()
 	separatorFlag     = kingpin.Flag("separator", "").Default(" ").String()
 	allFlag           = kingpin.Flag("all", "do not hide entries starting with .").Short('a').Bool()
+	classifyFlag      = kingpin.Flag("classify", "append indicator (one of /=@|) to entries").Short('F').Bool()
 	humanReadableFlag = kingpin.Flag("human-readable", "print sizes in human readable format (e.g., 1K 234M 2G)").Short('h').Bool()
 	siFlag            = kingpin.Flag("si", "print sizes in human readable format, but use powers of 1000 not 1024").Bool()
 	inodeFlag         = kingpin.Flag("inode", "print index number of each file").Short('i').Bool()
@@ -39,9 +40,11 @@ func main() {
 		return
 	}
 	for i, f := range fs {
-		name := f.Name()
-		if f.IsDir() {
-			name += "/"
+		var name string
+		if *classifyFlag {
+			name = f.ClassifiedName()
+		} else {
+			name = f.Name()
 		}
 
 		if !*allFlag && name[0] == '.' {
