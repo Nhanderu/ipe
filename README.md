@@ -63,7 +63,7 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
   - [ ] `--lcontext`
   - [ ] `-Z`, `--context`
   - [ ] `--scontext`
-  - [ ] `--help`
+  - [x] `--help`
   - [ ] `--version`
 - [ ] Make special features (even change flag and args)
   - [ ] Get all files by default, but separate dotfiles from the rest
