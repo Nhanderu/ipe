@@ -33,7 +33,7 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
   - [x] `-i`, `--inode`
   - [x] `-I`, `--ignore`
   - [ ] `-k`
-  - [ ] `-l`
+  - [x] `-l`
   - [ ] `-L`, `--dereference`
   - [ ] `-m`
   - [ ] `-n`, `--numeric-uid-gid`

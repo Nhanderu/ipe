@@ -30,6 +30,7 @@ var (
 	siFlag            = kingpin.Flag("si", "print sizes in human readable format, but use powers of 1000 not 1024").Bool()
 	inodeFlag         = kingpin.Flag("inode", "print index number of each file").Short('i').Bool()
 	ignoreFlag        = kingpin.Flag("ignore", "to not list implied entries matching shell PATTERN").Short('I').Regexp()
+	longFlag          = kingpin.Flag("long", "use a long listing format").Short('l').Bool()
 )
 
 func main() {
@@ -69,14 +70,18 @@ func main() {
 			inode = fmt.Sprintf("%d%s", i+1, *separatorFlag)
 		}
 
-		fmt.Printf("%s%s%s%s%s%s%s\n",
-			inode,
-			f.Mode().String(),
-			*separatorFlag,
-			size,
-			fmtTime(f.ModTime()),
-			*separatorFlag,
-			name)
+		if *longFlag {
+			fmt.Printf("%s%s%s%s%s%s%s\n",
+				inode,
+				f.Mode().String(),
+				*separatorFlag,
+				size,
+				fmtTime(f.ModTime()),
+				*separatorFlag,
+				name)
+		} else {
+			fmt.Printf("%s ", name)
+		}
 	}
 }
 
