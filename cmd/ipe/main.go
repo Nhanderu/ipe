@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"strings"
+
 	"github.com/Nhanderu/ipe"
 	"github.com/Nhanderu/tuyo/convert"
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -31,6 +33,8 @@ var (
 	inodeFlag         = kingpin.Flag("inode", "print index number of each file").Short('i').Bool()
 	ignoreFlag        = kingpin.Flag("ignore", "to not list implied entries matching shell PATTERN").Short('I').Regexp()
 	longFlag          = kingpin.Flag("long", "use a long listing format").Short('l').Bool()
+	reverseFlag       = kingpin.Flag("reverse", "").Short('r').Bool()
+	recursiveFlag     = kingpin.Flag("recursive", "").Short('R').Bool()
 )
 
 func main() {
@@ -41,46 +45,63 @@ func main() {
 		fmt.Println(err.Error())
 		return
 	}
+	if *reverseFlag {
+		reverse(fs)
+	}
 	for i, f := range fs {
+		printFile(i, f, 0)
+	}
+}
 
-		n := f.Name()
-		if (!*allFlag && n[0] == '.') ||
-			(*ignoreFlag != nil && (*ignoreFlag).MatchString(n)) {
-			continue
+func printFile(i int, f ipe.File, t int) {
+	n := f.Name()
+	if (!*allFlag && n[0] == '.') ||
+		(*ignoreFlag != nil && (*ignoreFlag).MatchString(n)) {
+		return
+	}
+
+	var name string
+	if *classifyFlag {
+		name = f.ClassifiedName()
+	} else {
+		name = n
+	}
+
+	var size string
+	if *humanReadableFlag {
+		size = fmt.Sprintf("%s%s", humanSize2(f.Size()), *separatorFlag)
+	} else if *siFlag {
+		size = fmt.Sprintf("%s%s", humanSize10(f.Size()), *separatorFlag)
+	} else {
+		size = fmt.Sprintf("%d%s", f.Size(), *separatorFlag)
+	}
+
+	var inode string
+	if *inodeFlag {
+		inode = fmt.Sprintf("%d%s", i+1, *separatorFlag)
+	}
+
+	if *longFlag {
+		fmt.Printf("%s%s%s%s%s%s%s%s\n",
+			inode,
+			f.Mode().String(),
+			*separatorFlag,
+			size,
+			fmtTime(f.ModTime()),
+			*separatorFlag,
+			strings.Repeat("--> ", t),
+			name)
+	} else {
+		fmt.Printf("%s  ", name)
+	}
+
+	if *recursiveFlag {
+		children := f.Children()
+		if *reverseFlag {
+			reverse(children)
 		}
-
-		var name string
-		if *classifyFlag {
-			name = f.ClassifiedName()
-		} else {
-			name = n
-		}
-
-		var size string
-		if *humanReadableFlag {
-			size = fmt.Sprintf("%s%s", humanSize2(f.Size()), *separatorFlag)
-		} else if *siFlag {
-			size = fmt.Sprintf("%s%s", humanSize10(f.Size()), *separatorFlag)
-		} else {
-			size = fmt.Sprintf("%d%s", f.Size(), *separatorFlag)
-		}
-
-		var inode string
-		if *inodeFlag {
-			inode = fmt.Sprintf("%d%s", i+1, *separatorFlag)
-		}
-
-		if *longFlag {
-			fmt.Printf("%s%s%s%s%s%s%s\n",
-				inode,
-				f.Mode().String(),
-				*separatorFlag,
-				size,
-				fmtTime(f.ModTime()),
-				*separatorFlag,
-				name)
-		} else {
-			fmt.Printf("%s  ", name)
+		for _, c := range children {
+			printFile(i, c, t+1)
 		}
 	}
 }
@@ -115,5 +136,11 @@ func humanSize(s, kb, mb, gb, tb int64) string {
 		return fmt.Sprintf("%5.1dGB", s/gb)
 	} else {
 		return fmt.Sprintf("%5.1dTB", s/tb)
+	}
+}
+
+func reverse(a []ipe.File) {
+	for l, r := 0, len(a)-1; l < r; l, r = l+1, r-1 {
+		a[l], a[r] = a[r], a[l]
 	}
 }

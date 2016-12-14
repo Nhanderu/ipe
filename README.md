@@ -44,8 +44,8 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
   - [ ] `--show-control-chars`
   - [ ] `-Q`, `--quote-name`
   - [ ] `--quoting-style`
-  - [ ] `-r`, `--reverse`
-  - [ ] `-R`, `--recursive`
+  - [x] `-r`, `--reverse`
+  - [x] `-R`, `--recursive`
   - [ ] `-s`, `--size`
   - [ ] `-S`
   - [ ] `--sort`
