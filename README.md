@@ -7,6 +7,7 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
 ### To-do list
 
 - [x] List directory contents
+- [ ] Identity and organize column sizes in long views
 - [ ] Add all flags and args `ls` has
   - [x] `-a`, `--all`
   - [ ] `-A`, `--almost-all` (IGNORED)
