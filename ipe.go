@@ -6,11 +6,7 @@ import "path/filepath"
 
 type File struct {
 	os.FileInfo
-}
-
-type RecurFile struct {
-	File
-	Children []RecurFile
+	dir string
 }
 
 func (f File) ClassifiedName() string {
@@ -43,42 +39,27 @@ func (f File) IsSticky() bool     { return f.Mode()&os.ModeSticky != 0 }
 
 func (f File) IsDotfile() bool { return f.Name()[0] == '.' }
 
-func ReadDir(path string) ([]File, error) {
-	list, err := readDir(path)
+func (f File) Children() []File {
+	if !f.IsDir() {
+		return nil
+	}
+	fs, _ := ReadDir(filepath.Join(f.dir, f.Name()))
+	return fs
+}
+
+func ReadDir(dirpath string) ([]File, error) {
+	f, err := os.Open(dirpath)
+	if err != nil {
+		return nil, err
+	}
+	list, err := f.Readdir(-1)
+	f.Close()
 	if err != nil {
 		return nil, err
 	}
 	rlist := make([]File, len(list))
 	for i, file := range list {
-		rlist[i] = File{file}
+		rlist[i] = File{file, dirpath}
 	}
 	return rlist, nil
-}
-
-func ReadRecurDir(path string) ([]RecurFile, error) {
-	list, err := readDir(path)
-	if err != nil {
-		return nil, err
-	}
-	rlist := make([]RecurFile, len(list))
-	for i, file := range list {
-		var innerFiles []RecurFile
-		if file.IsDir() {
-			innerFiles, err = ReadRecurDir(filepath.Join(path, file.Name()))
-			if err != nil {
-				return nil, err
-			}
-		}
-		rlist[i] = RecurFile{File{file}, innerFiles}
-	}
-	return rlist, nil
-}
-
-func readDir(path string) ([]os.FileInfo, error) {
-	f, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-	return f.Readdir(-1)
 }
