@@ -41,13 +41,10 @@ func (f File) IsSetgid() bool     { return f.Mode()&os.ModeSetgid != 0 }
 func (f File) IsCharDevice() bool { return f.Mode()&os.ModeCharDevice != 0 }
 func (f File) IsSticky() bool     { return f.Mode()&os.ModeSticky != 0 }
 
+func (f File) IsDotfile() bool { return f.Name()[0] == '.' }
+
 func ReadDir(path string) ([]File, error) {
-	f, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	list, err := f.Readdir(-1)
-	f.Close()
+	list, err := readDir(path)
 	if err != nil {
 		return nil, err
 	}
@@ -59,12 +56,7 @@ func ReadDir(path string) ([]File, error) {
 }
 
 func ReadRecurDir(path string) ([]RecurFile, error) {
-	f, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	list, err := f.Readdir(-1)
-	f.Close()
+	list, err := readDir(path)
 	if err != nil {
 		return nil, err
 	}
@@ -80,4 +72,13 @@ func ReadRecurDir(path string) ([]RecurFile, error) {
 		rlist[i] = RecurFile{File{file}, innerFiles}
 	}
 	return rlist, nil
+}
+
+func readDir(path string) ([]os.FileInfo, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	return f.Readdir(-1)
 }
