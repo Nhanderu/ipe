@@ -70,7 +70,7 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
   - [ ] `-a` to don't separate the files
   - [ ] `-A` to don't get dotfiles
   - [ ] Tree view
-  - [ ] Separator of columns in long view
+  - [x] Separator of columns in long view
 - [ ] Add colors
 - [ ] Add [Git integration][3]
   - [ ] Ignore "Git ignored" files by default

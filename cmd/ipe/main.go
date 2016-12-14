@@ -23,7 +23,7 @@ const (
 
 var (
 	srcArg            = kingpin.Arg("src", "the directory to list contents").Default(".").String()
-	separatorFlag     = kingpin.Flag("separator", "").Default(" ").String()
+	separatorFlag     = kingpin.Flag("separator", "separator of the columns in long view").Default(" ").String()
 	allFlag           = kingpin.Flag("all", "do not hide entries starting with .").Short('a').Bool()
 	classifyFlag      = kingpin.Flag("classify", "append indicator (one of /=@|) to entries").Short('F').Bool()
 	humanReadableFlag = kingpin.Flag("human-readable", "print sizes in human readable format (e.g., 1K 234M 2G)").Short('h').Bool()
@@ -80,7 +80,7 @@ func main() {
 				*separatorFlag,
 				name)
 		} else {
-			fmt.Printf("%s ", name)
+			fmt.Printf("%s  ", name)
 		}
 	}
 }
