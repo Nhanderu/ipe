@@ -7,6 +7,7 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
 ### To-do list
 
 - [x] List directory contents
+- [ ] Identity and organize column sizes in long views
 - [ ] Add all flags and args `ls` has
   - [x] `-a`, `--all`
   - [ ] `-A`, `--almost-all` (IGNORED)
@@ -33,7 +34,7 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
   - [x] `-i`, `--inode`
   - [x] `-I`, `--ignore`
   - [ ] `-k`
-  - [ ] `-l`
+  - [x] `-l`
   - [ ] `-L`, `--dereference`
   - [ ] `-m`
   - [ ] `-n`, `--numeric-uid-gid`
@@ -44,8 +45,8 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
   - [ ] `--show-control-chars`
   - [ ] `-Q`, `--quote-name`
   - [ ] `--quoting-style`
-  - [ ] `-r`, `--reverse`
-  - [ ] `-R`, `--recursive`
+  - [x] `-r`, `--reverse`
+  - [x] `-R`, `--recursive`
   - [ ] `-s`, `--size`
   - [ ] `-S`
   - [ ] `--sort`
@@ -63,14 +64,14 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
   - [ ] `--lcontext`
   - [ ] `-Z`, `--context`
   - [ ] `--scontext`
-  - [ ] `--help`
+  - [x] `--help`
   - [ ] `--version`
 - [ ] Make special features
   - [ ] Get all files by default, but separate dotfiles from the rest
   - [ ] `-a` to don't separate the files
   - [ ] `-A` to don't get dotfiles
   - [ ] Tree view
-  - [ ] Separator of columns in long view
+  - [x] Separator of columns in long view
 - [ ] Add colors
 - [ ] Add [Git integration][3]
   - [ ] Ignore "Git ignored" files by default
