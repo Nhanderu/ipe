@@ -65,7 +65,7 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
   - [ ] `--scontext`
   - [ ] `--help`
   - [ ] `--version`
-- [ ] Make special features (even change flag and args)
+- [ ] Make special features
   - [ ] Get all files by default, but separate dotfiles from the rest
   - [ ] `-a` to don't separate the files
   - [ ] `-A` to don't get dotfiles
