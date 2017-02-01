@@ -2,12 +2,15 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"strings"
 
 	"github.com/Nhanderu/ipe"
 	"github.com/Nhanderu/tuyo/convert"
+	"github.com/fatih/color"
+	isatty "github.com/mattn/go-isatty"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -24,9 +27,12 @@ const (
 )
 
 var (
-	srcArg            = kingpin.Arg("src", "the directory to list contents").Default(".").String()
-	separatorFlag     = kingpin.Flag("separator", "separator of the columns in long view").Default(" ").String()
+	srcArg = kingpin.Arg("src", "the directory to list contents").Default(".").String()
+
+	separatorFlag = kingpin.Flag("separator", "separator of the columns in long view").Default(" ").String()
+
 	allFlag           = kingpin.Flag("all", "do not hide entries starting with .").Short('a').Bool()
+	colorFlag         = kingpin.Flag("color", "control  whether  color is used to distinguish file types").Enum("never", "always", "auto")
 	classifyFlag      = kingpin.Flag("classify", "append indicator (one of /=@|) to entries").Short('F').Bool()
 	humanReadableFlag = kingpin.Flag("human-readable", "print sizes in human readable format (e.g., 1K 234M 2G)").Short('h').Bool()
 	siFlag            = kingpin.Flag("si", "print sizes in human readable format, but use powers of 1000 not 1024").Bool()
@@ -58,6 +64,12 @@ func printFile(i int, f ipe.File, t int) {
 	if (!*allFlag && n[0] == '.') ||
 		(*ignoreFlag != nil && (*ignoreFlag).MatchString(n)) {
 		return
+	}
+
+	if *colorFlag == "auto" {
+		color.NoColor = !isatty.IsTerminal(os.Stdout.Fd()) || os.Getenv("TERM") == "dumb"
+	} else {
+		color.NoColor = *colorFlag == "never"
 	}
 
 	var name string

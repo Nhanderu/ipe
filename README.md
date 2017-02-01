@@ -17,7 +17,7 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
   - [ ] `-B`, `--ignore-backups`
   - [ ] `-c`
   - [ ] `-C`
-  - [ ] `--color`
+  - [x] `--color`
   - [ ] `-d`, `--directory`
   - [ ] `-D`, `--dired`
   - [ ] `-f`
@@ -72,7 +72,7 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
   - [ ] `-A` to don't get dotfiles
   - [ ] Tree view
   - [x] Separator of columns in long view
-- [ ] Add colors
+- [ ] Define colors
 - [ ] Add [Git integration][3]
   - [ ] Ignore "Git ignored" files by default
   - [ ] Show files' Git status 
