@@ -1,8 +1,10 @@
 package ipe
 
-import "os"
-import "fmt"
-import "path/filepath"
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+)
 
 type File struct {
 	os.FileInfo
@@ -43,7 +45,10 @@ func (f File) Children() []File {
 	if !f.IsDir() {
 		return nil
 	}
-	fs, _ := ReadDir(filepath.Join(f.dir, f.Name()))
+	fs, err := ReadDir(filepath.Join(f.dir, f.Name()))
+	if err != nil {
+		return nil
+	}
 	return fs
 }
 
