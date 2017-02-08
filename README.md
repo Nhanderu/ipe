@@ -27,7 +27,7 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
   - [ ] `-g`
   - [ ] `-G`, `--no-group`
   - [x] `-h`, `--human-readable`
-  - [x] `--si`
+  - [ ] `--si` (IGNORED)
   - [ ] `-H`, `--dereference-command-line`
   - [ ] `--dereference-command-line-symlink-to-dir`
   - [ ] `--indicator-style`

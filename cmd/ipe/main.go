@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Nhanderu/ipe"
+	"github.com/Nhanderu/trena"
 	"github.com/Nhanderu/tuyo/convert"
 	"github.com/fatih/color"
 	isatty "github.com/mattn/go-isatty"
@@ -14,49 +15,72 @@ import (
 )
 
 const (
-	kilobyte2 = 1024
-	megabyte2 = kilobyte2 * 1024
-	gigabyte2 = megabyte2 * 1024
-	terabyte2 = gigabyte2 * 1024
-
-	kilobyte10 = 1000
-	megabyte10 = kilobyte10 * 1000
-	gigabyte10 = megabyte10 * 1000
-	terabyte10 = gigabyte10 * 1000
+	kilobyte = 1024
+	megabyte = kilobyte * 1024
+	gigabyte = megabyte * 1024
+	terabyte = gigabyte * 1024
 )
 
 var (
-	srcArg = kingpin.Arg("src", "the directory to list contents").Default(".").String()
-
-	separatorFlag = kingpin.Flag("separator", "separator of the columns in long view").Default(" ").String()
-
+	srcArg            = kingpin.Arg("src", "the directory to list contents").Default(".").String()
+	separatorFlag     = kingpin.Flag("separator", "separator of the columns in long view").Default(" ").String()
 	allFlag           = kingpin.Flag("all", "do not hide entries starting with .").Short('a').Bool()
 	colorFlag         = kingpin.Flag("color", "control  whether  color is used to distinguish file types").Enum("never", "always", "auto")
 	classifyFlag      = kingpin.Flag("classify", "append indicator (one of /=@|) to entries").Short('F').Bool()
 	humanReadableFlag = kingpin.Flag("human-readable", "print sizes in human readable format (e.g., 1K 234M 2G)").Short('h').Bool()
-	siFlag            = kingpin.Flag("si", "print sizes in human readable format, but use powers of 1000 not 1024").Bool()
 	inodeFlag         = kingpin.Flag("inode", "print index number of each file").Short('i').Bool()
 	ignoreFlag        = kingpin.Flag("ignore", "to not list implied entries matching shell PATTERN").Short('I').Regexp()
 	longFlag          = kingpin.Flag("long", "use a long listing format").Short('l').Bool()
 	reverseFlag       = kingpin.Flag("reverse", "").Short('r').Bool()
 	recursiveFlag     = kingpin.Flag("recursive", "").Short('R').Bool()
+
+	width, biggestMode, biggestSize, biggestTime int
 )
 
 func main() {
 	kingpin.Parse()
 
+	// Gets the necessary info.
 	fs, err := ipe.ReadDir(*srcArg)
 	if err != nil {
-		fmt.Println(err.Error())
-		return
+		endWithErr(err)
+	}
+	width, _, err = trena.Size()
+	if err != nil {
+		endWithErr(err)
 	}
 	if *reverseFlag {
 		reverse(fs)
 	}
+
+	// First loop: preparation.
+	for _, f := range fs {
+		checkBiggestValues(f)
+	}
+
+	// Second loop: printing.
 	for i, f := range fs {
 		printFile(i, f, 0)
 	}
+
 	fmt.Println()
+}
+
+func checkBiggestValues(f ipe.File) {
+	if m := len(fmtMode(f.Mode().String(), "")); m > biggestMode {
+		biggestMode = m
+	}
+	if s := len(fmtSize(f.Size(), "")); s > biggestSize {
+		biggestSize = s
+	}
+	if t := len(fmtTime(f.ModTime(), "")); t > biggestTime {
+		biggestTime = t
+	}
+	if *recursiveFlag {
+		for _, ff := range f.Children() {
+			checkBiggestValues(ff)
+		}
+	}
 }
 
 func printFile(i int, f ipe.File, t int) {
@@ -79,28 +103,17 @@ func printFile(i int, f ipe.File, t int) {
 		name = n
 	}
 
-	var size string
-	if *humanReadableFlag {
-		size = fmt.Sprintf("%s%s", humanSize2(f.Size()), *separatorFlag)
-	} else if *siFlag {
-		size = fmt.Sprintf("%s%s", humanSize10(f.Size()), *separatorFlag)
-	} else {
-		size = fmt.Sprintf("%d%s", f.Size(), *separatorFlag)
-	}
-
 	var inode string
 	if *inodeFlag {
 		inode = fmt.Sprintf("%d%s", i+1, *separatorFlag)
 	}
 
 	if *longFlag {
-		fmt.Printf("%s%s%s%s%s%s%s%s\n",
+		fmt.Printf("%s%s%s%s%s%s\n",
 			inode,
-			f.Mode().String(),
-			*separatorFlag,
-			size,
-			fmtTime(f.ModTime()),
-			*separatorFlag,
+			getMode(f, *separatorFlag),
+			getSize(f, *separatorFlag),
+			getTime(f, *separatorFlag),
 			strings.Repeat("--> ", t),
 			name)
 	} else {
@@ -118,41 +131,73 @@ func printFile(i int, f ipe.File, t int) {
 	}
 }
 
-func fmtTime(t time.Time) string {
+func getMode(f ipe.File, sep string) string {
+	return padLeft(fmtMode(f.Mode().String(), sep), " ", biggestMode+len(sep))
+}
+
+func fmtMode(m, sep string) string {
+	return fmt.Sprintf("%s%s", m, sep)
+}
+
+func getSize(f ipe.File, sep string) string {
+	return padLeft(fmtSize(f.Size(), sep), " ", biggestSize+len(sep))
+}
+
+func fmtSize(s int64, sep string) string {
+	if *humanReadableFlag {
+		return fmt.Sprintf("%s%s", humanSize(s), sep)
+	}
+	return fmt.Sprintf("%s%s", convert.ToString(s), sep)
+}
+
+func humanSize(s int64) string {
+	if s < kilobyte {
+		return fmt.Sprintf("%dB", s)
+	} else if s < megabyte {
+		return fmt.Sprintf("%.1dKB", s/kilobyte)
+	} else if s < gigabyte {
+		return fmt.Sprintf("%.1dMB", s/megabyte)
+	} else if s < terabyte {
+		return fmt.Sprintf("%.1dGB", s/gigabyte)
+	} else {
+		return fmt.Sprintf("%.1dTB", s/terabyte)
+	}
+}
+
+func getTime(f ipe.File, sep string) string {
+	return padRight(fmtTime(f.ModTime(), sep), " ", biggestTime+len(sep))
+}
+
+func fmtTime(t time.Time, sep string) string {
 	year, month, day := t.Date()
 	str := fmt.Sprintf("%2d %s ", day, month.String()[:3])
 	if year == time.Now().Year() {
-		str += fmt.Sprintf("%2d:%02d", t.Hour(), t.Minute())
-	} else {
-		str += convert.ToString(year)
+		return fmt.Sprintf("%s%2d:%02d%s", str, t.Hour(), t.Minute(), sep)
 	}
-	return str
-}
-
-func humanSize2(s int64) string {
-	return humanSize(s, kilobyte2, megabyte2, gigabyte2, terabyte2)
-}
-
-func humanSize10(s int64) string {
-	return humanSize(s, kilobyte10, megabyte10, gigabyte10, terabyte10)
-}
-
-func humanSize(s, kb, mb, gb, tb int64) string {
-	if s < kb {
-		return fmt.Sprintf("%6dB", s)
-	} else if s < mb {
-		return fmt.Sprintf("%5.1dKB", s/kb)
-	} else if s < gb {
-		return fmt.Sprintf("%5.1dMB", s/mb)
-	} else if s < tb {
-		return fmt.Sprintf("%5.1dGB", s/gb)
-	} else {
-		return fmt.Sprintf("%5.1dTB", s/tb)
-	}
+	return fmt.Sprintf("%s%d%s", str, year, sep)
 }
 
 func reverse(a []ipe.File) {
 	for l, r := 0, len(a)-1; l < r; l, r = l+1, r-1 {
 		a[l], a[r] = a[r], a[l]
 	}
+}
+
+func endWithErr(err error) {
+	fmt.Println(err.Error())
+	os.Exit(1)
+}
+
+func padLeft(a, b string, l int) string {
+	if l <= len(a) {
+		return a
+	}
+	return fmt.Sprintf("%s%s", strings.Repeat(b, l-len(a)), a)
+}
+
+func padRight(a, b string, l int) string {
+	if l <= len(a) {
+		return a
+	}
+	return fmt.Sprintf("%s%s", a, strings.Repeat(b, l-len(a)))
 }
