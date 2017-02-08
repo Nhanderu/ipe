@@ -74,6 +74,7 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
   - [x] Separator of columns in long view
   - [ ] Flag to specify maximum depth of recursion
   - [ ] Flag to sort by an column/field
+  - [ ] Flag to get one item per line
 - [ ] Define colors
 - [ ] Add [Git integration][3]
   - [ ] Ignore "Git ignored" files by default
