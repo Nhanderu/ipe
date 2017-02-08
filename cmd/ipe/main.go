@@ -60,7 +60,7 @@ func main() {
 
 	// Second loop: printing.
 	for i, f := range fs {
-		printFile(i, f, 0)
+		printFile(i, f, 0, []bool{i+1 == len(fs)})
 	}
 
 	fmt.Println()
@@ -83,7 +83,7 @@ func checkBiggestValues(f ipe.File) {
 	}
 }
 
-func printFile(i int, f ipe.File, t int) {
+func printFile(i int, f ipe.File, t int, corners []bool) {
 	n := f.Name()
 	if (!*allFlag && f.IsDotfile()) ||
 		(*ignoreFlag != nil && (*ignoreFlag).MatchString(n)) {
@@ -114,7 +114,7 @@ func printFile(i int, f ipe.File, t int) {
 			getMode(f, *separatorFlag),
 			getSize(f, *separatorFlag),
 			getTime(f, *separatorFlag),
-			strings.Repeat("--> ", t),
+			makeArrow(corners),
 			name)
 	} else {
 		fmt.Printf("%s  ", name)
@@ -125,8 +125,8 @@ func printFile(i int, f ipe.File, t int) {
 		if *reverseFlag {
 			reverse(children)
 		}
-		for _, c := range children {
-			printFile(i, c, t+1)
+		for ii, c := range children {
+			printFile(i, c, t+1, append(corners, ii+1 == len(children)))
 		}
 	}
 }
@@ -202,4 +202,21 @@ func padRight(a, b string, l int) string {
 		return a
 	}
 	return fmt.Sprintf("%s%s", a, strings.Repeat(b, l-len(a)))
+}
+
+func makeArrow(corners []bool) string {
+	var s string
+	arrowTree := map[bool]map[bool]string{
+		true: {
+			true:  "└──",
+			false: "   ",
+		}, false: {
+			true:  "├──",
+			false: "│  ",
+		},
+	}
+	for i, c := range corners {
+		s = fmt.Sprintf("%s%s", s, arrowTree[c][i+1 == len(corners)])
+	}
+	return s
 }
