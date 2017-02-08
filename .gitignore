@@ -1,30 +1,17 @@
-# Compiled Object files, Static and Dynamic libs (Shared Objects)
-*.o
-*.a
+# Binaries for programs and plugins
+*.exe
+*.dll
 *.so
 
-# Folders
-_obj
-_test
-
-# Architecture specific extensions/prefixes
-*.[568vq]
-[568vq].out
-
-*.cgo1.go
-*.cgo2.c
-_cgo_defun.c
-_cgo_gotypes.go
-_cgo_export.*
-
-_testmain.go
-
-*.exe
+# Test binary
 *.test
-*.prof
 
-# Output of the go coverage tool, specifically when used with LiteIDE
+# Output of the go coverage tool
 *.out
 
-# External packages folder
+# Vendor folders
+.glide/
 vendor/
+
+# Project folders
+.vscode/
