@@ -3,9 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
-	"time"
-
 	"strings"
+	"time"
 
 	"github.com/Nhanderu/ipe"
 	"github.com/Nhanderu/tuyo/convert"
@@ -57,11 +56,12 @@ func main() {
 	for i, f := range fs {
 		printFile(i, f, 0)
 	}
+	fmt.Println()
 }
 
 func printFile(i int, f ipe.File, t int) {
 	n := f.Name()
-	if (!*allFlag && n[0] == '.') ||
+	if (!*allFlag && f.IsDotfile()) ||
 		(*ignoreFlag != nil && (*ignoreFlag).MatchString(n)) {
 		return
 	}
