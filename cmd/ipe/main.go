@@ -67,13 +67,13 @@ func main() {
 }
 
 func checkBiggestValues(f ipe.File) {
-	if m := len(fmtMode(f.Mode().String(), "")); m > biggestMode {
+	if m := len(fmtMode(f)); m > biggestMode {
 		biggestMode = m
 	}
-	if s := len(fmtSize(f.Size(), "")); s > biggestSize {
+	if s := len(fmtSize(f)); s > biggestSize {
 		biggestSize = s
 	}
-	if t := len(fmtTime(f.ModTime(), "")); t > biggestTime {
+	if t := len(fmtTime(f)); t > biggestTime {
 		biggestTime = t
 	}
 	if *recursiveFlag {
@@ -132,25 +132,22 @@ func printFile(i int, f ipe.File, t int) {
 }
 
 func getMode(f ipe.File, sep string) string {
-	return padLeft(fmtMode(f.Mode().String(), sep), " ", biggestMode+len(sep))
+	return addSep(padLeft(fmtMode(f), " ", biggestMode), sep)
 }
 
-func fmtMode(m, sep string) string {
-	return fmt.Sprintf("%s%s", m, sep)
+func fmtMode(f ipe.File) string {
+	return f.Mode().String()
 }
 
 func getSize(f ipe.File, sep string) string {
-	return padLeft(fmtSize(f.Size(), sep), " ", biggestSize+len(sep))
+	return addSep(padLeft(fmtSize(f), " ", biggestSize), sep)
 }
 
-func fmtSize(s int64, sep string) string {
-	if *humanReadableFlag {
-		return fmt.Sprintf("%s%s", humanSize(s), sep)
+func fmtSize(f ipe.File) string {
+	s := f.Size()
+	if !*humanReadableFlag {
+		return convert.ToString(s)
 	}
-	return fmt.Sprintf("%s%s", convert.ToString(s), sep)
-}
-
-func humanSize(s int64) string {
 	if s < kilobyte {
 		return fmt.Sprintf("%dB", s)
 	} else if s < megabyte {
@@ -165,16 +162,21 @@ func humanSize(s int64) string {
 }
 
 func getTime(f ipe.File, sep string) string {
-	return padRight(fmtTime(f.ModTime(), sep), " ", biggestTime+len(sep))
+	return addSep(padRight(fmtTime(f), " ", biggestTime), sep)
 }
 
-func fmtTime(t time.Time, sep string) string {
+func fmtTime(f ipe.File) string {
+	t := f.ModTime()
 	year, month, day := t.Date()
 	str := fmt.Sprintf("%2d %s ", day, month.String()[:3])
 	if year == time.Now().Year() {
-		return fmt.Sprintf("%s%2d:%02d%s", str, t.Hour(), t.Minute(), sep)
+		return fmt.Sprintf("%s%2d:%02d", str, t.Hour(), t.Minute())
 	}
-	return fmt.Sprintf("%s%d%s", str, year, sep)
+	return fmt.Sprintf("%s%d", str, year)
+}
+
+func addSep(s, sep string) string {
+	return fmt.Sprintf("%s%s", s, sep)
 }
 
 func reverse(a []ipe.File) {
