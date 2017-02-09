@@ -125,7 +125,12 @@ func printFile(i int, f ipe.File, t int, corners []bool) {
 			getTime(f, *separatorFlag),
 			name)
 	} else {
-		fmt.Print(name, "  ")
+		if *treeFlag {
+			fmt.Print(makeTree(corners), name)
+			fmt.Println()
+		} else {
+			fmt.Print(name, " ")
+		}
 	}
 
 	if *recursiveFlag {
