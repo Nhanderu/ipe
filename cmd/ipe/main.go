@@ -118,12 +118,13 @@ func printFile(i int, f ipe.File, t int, corners []bool) {
 		if *treeFlag {
 			name = fmt.Sprint(makeTree(corners), name)
 		}
-		fmt.Printf("%s%s%s%s%s\n",
+		fmt.Print(
 			inode,
 			getMode(f, *separatorFlag),
 			getSize(f, *separatorFlag),
 			getTime(f, *separatorFlag),
 			name)
+		fmt.Println()
 	} else {
 		if *treeFlag {
 			fmt.Print(makeTree(corners), name)
