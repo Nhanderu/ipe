@@ -33,6 +33,7 @@ var (
 	longFlag          = kingpin.Flag("long", "use a long listing format").Short('l').Bool()
 	reverseFlag       = kingpin.Flag("reverse", "").Short('r').Bool()
 	recursiveFlag     = kingpin.Flag("recursive", "").Short('R').Bool()
+	treeFlag          = kingpin.Flag("tree", "shows the entries in the tree view").Short('t').Bool()
 
 	width, biggestMode, biggestSize, biggestTime int
 )
@@ -114,12 +115,14 @@ func printFile(i int, f ipe.File, t int, corners []bool) {
 	}
 
 	if *longFlag {
-		fmt.Printf("%s%s%s%s%s%s\n",
+		if *treeFlag {
+			name = fmt.Sprint(makeTree(corners), name)
+		}
+		fmt.Printf("%s%s%s%s%s\n",
 			inode,
 			getMode(f, *separatorFlag),
 			getSize(f, *separatorFlag),
 			getTime(f, *separatorFlag),
-			makeArrow(corners),
 			name)
 	} else {
 		fmt.Print(name, "  ")
@@ -180,22 +183,7 @@ func fmtTime(f ipe.File) string {
 	return fmt.Sprintf("%s%d", str, year)
 }
 
-func addSep(s, sep string) string {
-	return fmt.Sprint(s, sep)
-}
-
-func reverse(a []ipe.File) {
-	for l, r := 0, len(a)-1; l < r; l, r = l+1, r-1 {
-		a[l], a[r] = a[r], a[l]
-	}
-}
-
-func endWithErr(err error) {
-	fmt.Println(err.Error())
-	os.Exit(1)
-}
-
-func makeArrow(corners []bool) string {
+func makeTree(corners []bool) string {
 	var s string
 	arrowTree := map[bool]map[bool]string{
 		true: {
@@ -210,4 +198,19 @@ func makeArrow(corners []bool) string {
 		s = fmt.Sprint(s, arrowTree[c][i+1 == len(corners)])
 	}
 	return s
+}
+
+func addSep(s, sep string) string {
+	return fmt.Sprint(s, sep)
+}
+
+func reverse(a []ipe.File) {
+	for l, r := 0, len(a)-1; l < r; l, r = l+1, r-1 {
+		a[l], a[r] = a[r], a[l]
+	}
+}
+
+func endWithErr(err error) {
+	fmt.Println(err.Error())
+	os.Exit(1)
 }
