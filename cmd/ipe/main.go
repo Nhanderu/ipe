@@ -67,6 +67,9 @@ func main() {
 }
 
 func checkBiggestValues(f ipe.File) {
+	if !show(f) {
+		return
+	}
 	if m := len(fmtMode(f)); m > biggestMode {
 		biggestMode = m
 	}
@@ -83,10 +86,12 @@ func checkBiggestValues(f ipe.File) {
 	}
 }
 
+func show(f ipe.File) bool {
+	return (*allFlag || !f.IsDotfile()) && (*ignoreFlag == nil || !(*ignoreFlag).MatchString(f.Name()))
+}
+
 func printFile(i int, f ipe.File, t int, corners []bool) {
-	n := f.Name()
-	if (!*allFlag && f.IsDotfile()) ||
-		(*ignoreFlag != nil && (*ignoreFlag).MatchString(n)) {
+	if !show(f) {
 		return
 	}
 
@@ -100,7 +105,7 @@ func printFile(i int, f ipe.File, t int, corners []bool) {
 	if *classifyFlag {
 		name = f.ClassifiedName()
 	} else {
-		name = n
+		name = f.Name()
 	}
 
 	var inode string
