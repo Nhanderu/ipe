@@ -15,12 +15,12 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
   - [ ] `-b`, `--escape`
   - [ ] `--block-size`
   - [ ] `-B`, `--ignore-backups`
-  - [ ] `-c`
+  - [ ] `-c` (IGNORED)
   - [ ] `-C`
   - [x] `--color`
   - [ ] `-d`, `--directory`
   - [ ] `-D`, `--dired`
-  - [ ] `-f`
+  - [ ] `-f` (IGNORED)
   - [x] `-F`, `--classify`
   - [ ] `--format`
   - [ ] `--full-time`
@@ -48,18 +48,18 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
   - [x] `-r`, `--reverse`
   - [x] `-R`, `--recursive`
   - [ ] `-s`, `--size`
-  - [ ] `-S`
+  - [ ] `-S` (IGNORED)
   - [ ] `--sort`
   - [ ] `--time`
   - [ ] `--time-style`
-  - [ ] `-t`
+  - [ ] `-t` (IGNORED)
   - [ ] `-T`, `--tabsize`
-  - [ ] `-u`
-  - [ ] `-U`
-  - [ ] `-v`
+  - [ ] `-u` (IGNORED)
+  - [ ] `-U` (IGNORED)
+  - [ ] `-v` (IGNORED)
   - [ ] `-w`, `--width`
   - [ ] `-x`
-  - [ ] `-X`
+  - [ ] `-X` (IGNORED)
   - [ ] `-1`
   - [ ] `--lcontext`
   - [ ] `-Z`, `--context`
