@@ -12,6 +12,7 @@ type File struct {
 	dir string
 }
 
+//ClassifiedName returns the name with an type indicator appended.
 func (f File) ClassifiedName() string {
 	switch {
 	case f.IsDir():
