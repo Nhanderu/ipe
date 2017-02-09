@@ -3,12 +3,12 @@ package main
 import (
 	"fmt"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/Nhanderu/ipe"
 	"github.com/Nhanderu/trena"
 	"github.com/Nhanderu/tuyo/convert"
+	"github.com/Nhanderu/tuyo/text"
 	"github.com/fatih/color"
 	isatty "github.com/mattn/go-isatty"
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -117,7 +117,7 @@ func printFile(i int, f ipe.File, t int, corners []bool) {
 			makeArrow(corners),
 			name)
 	} else {
-		fmt.Printf("%s  ", name)
+		fmt.Print(name, "  ")
 	}
 
 	if *recursiveFlag {
@@ -132,7 +132,7 @@ func printFile(i int, f ipe.File, t int, corners []bool) {
 }
 
 func getMode(f ipe.File, sep string) string {
-	return addSep(padLeft(fmtMode(f), " ", biggestMode), sep)
+	return addSep(text.PadLeft(fmtMode(f), " ", biggestMode), sep)
 }
 
 func fmtMode(f ipe.File) string {
@@ -140,7 +140,7 @@ func fmtMode(f ipe.File) string {
 }
 
 func getSize(f ipe.File, sep string) string {
-	return addSep(padLeft(fmtSize(f), " ", biggestSize), sep)
+	return addSep(text.PadLeft(fmtSize(f), " ", biggestSize), sep)
 }
 
 func fmtSize(f ipe.File) string {
@@ -162,7 +162,7 @@ func fmtSize(f ipe.File) string {
 }
 
 func getTime(f ipe.File, sep string) string {
-	return addSep(padRight(fmtTime(f), " ", biggestTime), sep)
+	return addSep(text.PadRight(fmtTime(f), " ", biggestTime), sep)
 }
 
 func fmtTime(f ipe.File) string {
@@ -176,7 +176,7 @@ func fmtTime(f ipe.File) string {
 }
 
 func addSep(s, sep string) string {
-	return fmt.Sprintf("%s%s", s, sep)
+	return fmt.Sprint(s, sep)
 }
 
 func reverse(a []ipe.File) {
@@ -188,20 +188,6 @@ func reverse(a []ipe.File) {
 func endWithErr(err error) {
 	fmt.Println(err.Error())
 	os.Exit(1)
-}
-
-func padLeft(a, b string, l int) string {
-	if l <= len(a) {
-		return a
-	}
-	return fmt.Sprintf("%s%s", strings.Repeat(b, l-len(a)), a)
-}
-
-func padRight(a, b string, l int) string {
-	if l <= len(a) {
-		return a
-	}
-	return fmt.Sprintf("%s%s", a, strings.Repeat(b, l-len(a)))
 }
 
 func makeArrow(corners []bool) string {
@@ -216,7 +202,7 @@ func makeArrow(corners []bool) string {
 		},
 	}
 	for i, c := range corners {
-		s = fmt.Sprintf("%s%s", s, arrowTree[c][i+1 == len(corners)])
+		s = fmt.Sprint(s, arrowTree[c][i+1 == len(corners)])
 	}
 	return s
 }
