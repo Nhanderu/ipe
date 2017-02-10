@@ -70,11 +70,12 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
   - [ ] Get all files by default, but separate dotfiles from the rest
   - [ ] `-a` to don't separate the files
   - [ ] `-A` to don't get dotfiles
-  - [x] Tree view
+  - [x] Tree view (-t)
   - [x] Separator of columns in long view
   - [ ] Flag to specify maximum depth of recursion
   - [ ] Flag to sort by an column/field
   - [ ] Flag to get one item per line
+  - [ ] Flag to filter entries (-f)
 - [ ] Define colors
 - [ ] Add [Git integration][3]
   - [ ] Ignore "Git ignored" files by default
