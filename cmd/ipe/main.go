@@ -10,7 +10,6 @@ import (
 	"github.com/Nhanderu/tuyo/convert"
 	"github.com/Nhanderu/tuyo/text"
 	"github.com/fatih/color"
-	isatty "github.com/mattn/go-isatty"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -19,20 +18,24 @@ const (
 	megabyte = kilobyte * 1024
 	gigabyte = megabyte * 1024
 	terabyte = gigabyte * 1024
+
+	colorNever  = "never"
+	colorAlways = "always"
+	colorAuto   = "auto"
 )
 
 var (
 	srcArg            = kingpin.Arg("src", "the directory to list contents").Default(".").String()
 	separatorFlag     = kingpin.Flag("separator", "separator of the columns in long view").Default(" ").String()
 	allFlag           = kingpin.Flag("all", "do not hide entries starting with .").Short('a').Bool()
-	colorFlag         = kingpin.Flag("color", "control  whether  color is used to distinguish file types").Enum("never", "always", "auto")
+	colorFlag         = kingpin.Flag("color", "control whether color is used to distinguish file types").Enum(colorNever, colorAlways, colorAuto)
 	classifyFlag      = kingpin.Flag("classify", "append indicator (one of /=@|) to entries").Short('F').Bool()
 	humanReadableFlag = kingpin.Flag("human-readable", "print sizes in human readable format (e.g., 1K 234M 2G)").Short('h').Bool()
 	inodeFlag         = kingpin.Flag("inode", "print index number of each file").Short('i').Bool()
 	ignoreFlag        = kingpin.Flag("ignore", "to not list implied entries matching shell PATTERN").Short('I').Regexp()
 	longFlag          = kingpin.Flag("long", "use a long listing format").Short('l').Bool()
-	reverseFlag       = kingpin.Flag("reverse", "").Short('r').Bool()
-	recursiveFlag     = kingpin.Flag("recursive", "").Short('R').Bool()
+	reverseFlag       = kingpin.Flag("reverse", "reverse order while sorting").Short('r').Bool()
+	recursiveFlag     = kingpin.Flag("recursive", "list subdirectories recursively").Short('R').Bool()
 	treeFlag          = kingpin.Flag("tree", "shows the entries in the tree view").Short('t').Bool()
 
 	width, biggestMode, biggestSize, biggestTime int
@@ -96,10 +99,8 @@ func printFile(i int, f ipe.File, t int, corners []bool) {
 		return
 	}
 
-	if *colorFlag == "auto" {
-		color.NoColor = !isatty.IsTerminal(os.Stdout.Fd()) || os.Getenv("TERM") == "dumb"
-	} else {
-		color.NoColor = *colorFlag == "never"
+	if *colorFlag != colorAuto {
+		color.NoColor = *colorFlag == colorNever
 	}
 
 	var name string
