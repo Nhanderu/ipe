@@ -67,9 +67,6 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
   - [x] `--help`
   - [ ] `--version`
 - [ ] Make special features
-  - [ ] Get all files by default, but separate dotfiles from the rest
-  - [ ] `-a` to don't separate the files
-  - [ ] `-A` to don't get dotfiles
   - [x] Tree view (-t)
   - [x] Separator of columns in long view
   - [ ] Flag to specify maximum depth of recursion
@@ -89,4 +86,4 @@ This project code is in the public domain. See the [LICENSE file][4].
 [1]: https://github.com/jacwah/oak/
 [2]: https://github.com/ogham/exa/
 [3]: https://github.com/libgit2/git2go
-[4]: https://github.com/Nhanderu/ype/blob/master/LICENSE
+[4]: https://github.com/Nhanderu/ipe/blob/master/LICENSE
