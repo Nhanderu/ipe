@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/Nhanderu/gridt"
 	"github.com/Nhanderu/ipe"
 	"github.com/Nhanderu/trena"
 	"github.com/Nhanderu/tuyo/convert"
@@ -26,7 +27,7 @@ const (
 
 var (
 	srcArg            = kingpin.Arg("src", "the directory to list contents").Default(".").String()
-	separatorFlag     = kingpin.Flag("separator", "separator of the columns").Default(" ").String()
+	separatorFlag     = kingpin.Flag("separator", "separator of the columns").Default("  ").String()
 	allFlag           = kingpin.Flag("all", "do not hide entries starting with .").Short('a').Bool()
 	colorFlag         = kingpin.Flag("color", "control whether color is used to distinguish file types").Enum(colorNever, colorAlways, colorAuto)
 	classifyFlag      = kingpin.Flag("classify", "append indicator (one of /=@|) to entries").Short('F').Bool()
@@ -39,6 +40,7 @@ var (
 	treeFlag          = kingpin.Flag("tree", "shows the entries in the tree view").Short('t').Bool()
 
 	width, biggestMode, biggestSize, biggestTime int
+	grid                                         *gridt.Grid
 )
 
 func main() {
@@ -47,11 +49,11 @@ func main() {
 	// Gets the necessary info.
 	fs, err := ipe.ReadDir(*srcArg)
 	if err != nil {
-		endWithErr(err)
+		endWithErr(err.Error())
 	}
 	width, _, err = trena.Size()
 	if err != nil {
-		endWithErr(err)
+		endWithErr(err.Error())
 	}
 	if *reverseFlag {
 		reverse(fs)
@@ -62,9 +64,21 @@ func main() {
 		checkBiggestValues(f)
 	}
 
+	grid = gridt.New(gridt.TopToBottom, *separatorFlag)
+
 	// Second loop: printing.
 	for i, f := range fs {
 		printFile(i, f, 0, []bool{i+1 == len(fs)})
+	}
+	if !*treeFlag && !*longFlag {
+		g, ok := grid.FitIntoWidth(uint(width))
+		if !ok {
+			for _, cell := range grid.Cells() {
+				fmt.Println(cell)
+			}
+		} else {
+			fmt.Println(g.String())
+		}
 	}
 
 	fmt.Println()
@@ -131,7 +145,7 @@ func printFile(i int, f ipe.File, t int, corners []bool) {
 			fmt.Print(makeTree(corners), name)
 			fmt.Println()
 		} else {
-			fmt.Print(name, " ")
+			grid.Add(name)
 		}
 	}
 
@@ -217,7 +231,7 @@ func reverse(a []ipe.File) {
 	}
 }
 
-func endWithErr(err error) {
-	fmt.Println(err.Error())
+func endWithErr(err string) {
+	fmt.Println(err)
 	os.Exit(1)
 }
