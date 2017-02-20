@@ -26,13 +26,12 @@ const (
 )
 
 var (
-	srcArg            = kingpin.Arg("src", "the directory to list contents").Default(".").String()
+	srcArg            = kingpin.Arg("src", "the directory to list contents").Default(".").Strings()
 	separatorFlag     = kingpin.Flag("separator", "separator of the columns").Short('S').Default("  ").String()
 	allFlag           = kingpin.Flag("all", "do not hide entries starting with .").Short('a').Bool()
 	colorFlag         = kingpin.Flag("color", "control whether color is used to distinguish file types").Enum(colorNever, colorAlways, colorAuto)
 	classifyFlag      = kingpin.Flag("classify", "append indicator (one of /=@|) to entries").Short('F').Bool()
 	humanReadableFlag = kingpin.Flag("human-readable", "print sizes in human readable format (e.g., 1K 234M 2G)").Short('h').Bool()
-	inodeFlag         = kingpin.Flag("inode", "print index number of each file").Short('i').Bool()
 	ignoreFlag        = kingpin.Flag("ignore", "to not list implied entries matching shell PATTERN").Short('I').Regexp()
 	longFlag          = kingpin.Flag("long", "use a long listing format").Short('l').Bool()
 	reverseFlag       = kingpin.Flag("reverse", "reverse order while sorting").Short('r').Bool()
@@ -41,47 +40,36 @@ var (
 
 	width, biggestMode, biggestSize, biggestTime int
 	grid                                         *gridt.Grid
+	srcs                                         *[]srcTree
 )
+
+type srcTree struct {
+	src     string
+	file    ipe.File
+	depth   int
+	corners []bool
+}
 
 func main() {
 	kingpin.Parse()
 
-	// Gets the necessary info.
-	fs, err := ipe.ReadDir(*srcArg)
-	if err != nil {
-		endWithErr(err.Error())
-	}
-	width, _, err = trena.Size()
-	if err != nil {
-		endWithErr(err.Error())
-	}
-	if *reverseFlag {
-		reverse(fs)
-	}
-
-	// First loop: preparation.
-	for _, f := range fs {
-		checkBiggestValues(f)
-	}
-
-	grid = gridt.New(gridt.TopToBottom, *separatorFlag)
-
-	// Second loop: printing.
-	for i, f := range fs {
-		printFile(i, f, 0, []bool{i+1 == len(fs)})
-	}
-	if !*treeFlag && !*longFlag {
-		g, ok := grid.FitIntoWidth(uint(width))
-		if !ok {
-			for _, cell := range grid.Cells() {
-				fmt.Println(cell)
-			}
-		} else {
-			fmt.Println(g.String())
+	srcs = new([]srcTree)
+	*srcs = make([]srcTree, len(*srcArg))
+	for i, src := range *srcArg {
+		f, err := ipe.Read(src)
+		if err != nil {
+			endWithErr(err.Error())
 		}
+		(*srcs)[i] = srcTree{src, f, 0, []bool{}}
 	}
 
-	fmt.Println()
+	for _, src := range *srcs {
+		if len(*srcs) > 1 {
+			fmt.Println(src.file.FullName(), "->")
+		}
+		printDir(src)
+		fmt.Println()
+	}
 }
 
 func checkBiggestValues(f ipe.File) {
@@ -108,8 +96,53 @@ func show(f ipe.File) bool {
 	return (*allFlag || !f.IsDotfile()) && (*ignoreFlag == nil || !(*ignoreFlag).MatchString(f.Name()))
 }
 
-func printFile(i int, f ipe.File, t int, corners []bool) {
-	if !show(f) {
+func printDir(src srcTree) {
+	if !src.file.IsDir() {
+		fmt.Println(src.src, "is not a directory")
+		return
+	}
+	fs := src.file.Children()
+	if fs == nil {
+		fmt.Println("Something went wrong with", src.src)
+		return
+	}
+
+	// Gets the necessary info.
+	var err error
+	width, _, err = trena.Size()
+	if err != nil {
+		endWithErr(err.Error())
+	}
+	if *reverseFlag {
+		reverse(fs)
+	}
+	grid = gridt.New(gridt.TopToBottom, *separatorFlag)
+
+	// First loop: preparation.
+	for _, f := range fs {
+		checkBiggestValues(f)
+	}
+
+	// Second loop: printing.
+	for ii, f := range fs {
+		printFile(f, src.depth, append(src.corners, ii+1 == len(fs)))
+	}
+
+	if !*treeFlag && !*longFlag {
+		g, ok := grid.FitIntoWidth(uint(width))
+		if !ok {
+			for _, cell := range grid.Cells() {
+				fmt.Println(cell)
+			}
+		} else {
+			fmt.Println(g.String())
+		}
+	}
+
+}
+
+func printFile(file ipe.File, depth int, corners []bool) {
+	if !show(file) {
 		return
 	}
 
@@ -119,14 +152,9 @@ func printFile(i int, f ipe.File, t int, corners []bool) {
 
 	var name string
 	if *classifyFlag {
-		name = f.ClassifiedName()
+		name = file.ClassifiedName()
 	} else {
-		name = f.Name()
-	}
-
-	var inode string
-	if *inodeFlag {
-		inode = fmt.Sprintf("%d%s", i+1, *separatorFlag)
+		name = file.Name()
 	}
 
 	if *longFlag {
@@ -134,10 +162,9 @@ func printFile(i int, f ipe.File, t int, corners []bool) {
 			name = fmt.Sprint(makeTree(corners), name)
 		}
 		fmt.Print(
-			inode,
-			getMode(f, *separatorFlag),
-			getSize(f, *separatorFlag),
-			getTime(f, *separatorFlag),
+			getMode(file, *separatorFlag),
+			getSize(file, *separatorFlag),
+			getTime(file, *separatorFlag),
 			name)
 		fmt.Println()
 	} else {
@@ -149,14 +176,8 @@ func printFile(i int, f ipe.File, t int, corners []bool) {
 		}
 	}
 
-	if *recursiveFlag {
-		children := f.Children()
-		if *reverseFlag {
-			reverse(children)
-		}
-		for ii, c := range children {
-			printFile(i, c, t+1, append(corners, ii+1 == len(children)))
-		}
+	if *recursiveFlag && file.IsDir() {
+		printDir(srcTree{file.Name(), file, depth + 1, corners})
 	}
 }
 
