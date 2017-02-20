@@ -27,7 +27,7 @@ const (
 
 var (
 	srcArg            = kingpin.Arg("src", "the directory to list contents").Default(".").String()
-	separatorFlag     = kingpin.Flag("separator", "separator of the columns").Default("  ").String()
+	separatorFlag     = kingpin.Flag("separator", "separator of the columns").Short('S').Default("  ").String()
 	allFlag           = kingpin.Flag("all", "do not hide entries starting with .").Short('a').Bool()
 	colorFlag         = kingpin.Flag("color", "control whether color is used to distinguish file types").Enum(colorNever, colorAlways, colorAuto)
 	classifyFlag      = kingpin.Flag("classify", "append indicator (one of /=@|) to entries").Short('F').Bool()
