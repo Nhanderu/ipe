@@ -5,6 +5,8 @@ import (
 	"os"
 	"time"
 
+	"regexp"
+
 	"github.com/Nhanderu/gridt"
 	"github.com/Nhanderu/ipe"
 	"github.com/Nhanderu/trena"
@@ -39,58 +41,73 @@ var (
 	treeFlag          = kingpin.Flag("tree", "shows the entries in the tree view").Short('t').Bool()
 
 	biggestMode, biggestSize, biggestTime int
-	grid                                  *gridt.Grid
-	srcs                                  []srcTree
+	grids                                 []dirGrid
 )
 
-type srcTree struct {
-	src     string
-	file    ipe.File
-	depth   int
-	corners []bool
+type dirGrid struct {
+	file ipe.File
+	grid *gridt.Grid
 }
 
 func main() {
 	kingpin.Parse()
 
-	srcs = make([]srcTree, len(*srcArg))
-	for i, src := range *srcArg {
-		f, err := ipe.Read(src)
-		if err != nil {
-			endWithErr(err.Error())
-		}
-		srcs[i] = srcTree{src, f, 0, []bool{}}
+	if *colorFlag != colorAuto {
+		color.NoColor = *colorFlag == colorNever
 	}
 
-	for _, src := range srcs {
-		if len(srcs) > 1 {
-			fmt.Println(src.file.FullName(), "->")
-		}
-		printDir(src)
-		fmt.Println()
-	}
-}
-
-func printDir(src srcTree) {
-	if !src.file.IsDir() {
-		fmt.Println(src.src, "is not a directory")
-		return
-	}
-	fs := src.file.Children()
-	if fs == nil {
-		fmt.Println("Something went wrong with", src.src)
-		return
-	}
-
-	// Gets the necessary info.
+	grids = make([]dirGrid, 0)
 	width, _, err := trena.Size()
 	if err != nil {
 		endWithErr(err.Error())
 	}
+
+	for _, src := range *srcArg {
+		f, err := ipe.Read(src)
+		if err != nil {
+			endWithErr(err.Error())
+		}
+		printDir(src, f, 0, []bool{})
+	}
+
+	if !*longFlag && !*treeFlag {
+		for _, grid := range grids {
+			if len(grids) > 1 {
+				os.Stdout.WriteString(grid.file.FullName())
+				os.Stdout.WriteString("\n")
+			}
+			g, ok := grid.grid.FitIntoWidth(width)
+			if !ok {
+				for _, cell := range grid.grid.Cells() {
+					os.Stdout.WriteString(cell)
+				}
+			} else {
+				os.Stdout.WriteString(g.String())
+			}
+			os.Stdout.WriteString("\n")
+		}
+	} else {
+		os.Stdout.WriteString("\n")
+	}
+}
+
+func printDir(src string, file ipe.File, depth int, corners []bool) {
+	if !file.IsDir() {
+		fmt.Println(src, "is not a directory")
+		return
+	}
+	fs := file.Children()
+	if fs == nil {
+		fmt.Println("Something went wrong with", src)
+		return
+	}
+
+	grid := gridt.New(gridt.TopToBottom, *separatorFlag)
+	grids = append(grids, dirGrid{file, grid})
+
 	if *reverseFlag {
 		reverse(fs)
 	}
-	grid = gridt.New(gridt.TopToBottom, *separatorFlag)
 
 	// First loop: preparation.
 	for _, f := range fs {
@@ -99,29 +116,17 @@ func printDir(src srcTree) {
 
 	// Second loop: printing.
 	for ii, f := range fs {
-		printFile(f, src.depth, append(src.corners, ii+1 == len(fs)))
+		printFile(
+			f,
+			grid,
+			depth,
+			append(corners, ii+1 == len(fs)))
 	}
-
-	if !*treeFlag && !*longFlag {
-		g, ok := grid.FitIntoWidth(width)
-		if !ok {
-			for _, cell := range grid.Cells() {
-				fmt.Println(cell)
-			}
-		} else {
-			fmt.Println(g.String())
-		}
-	}
-
 }
 
-func printFile(file ipe.File, depth int, corners []bool) {
-	if !show(file) {
+func printFile(file ipe.File, grid *gridt.Grid, depth int, corners []bool) {
+	if !show(file, allFlag, ignoreFlag) {
 		return
-	}
-
-	if *colorFlag != colorAuto {
-		color.NoColor = *colorFlag == colorNever
 	}
 
 	var name string
@@ -132,31 +137,31 @@ func printFile(file ipe.File, depth int, corners []bool) {
 	}
 
 	if *longFlag {
+		os.Stdout.WriteString(getMode(file, *separatorFlag))
+		os.Stdout.WriteString(getSize(file, *separatorFlag))
+		os.Stdout.WriteString(getTime(file, *separatorFlag))
 		if *treeFlag {
-			name = fmt.Sprint(makeTree(corners), name)
+			os.Stdout.WriteString(makeTree(corners))
 		}
-		fmt.Print(
-			getMode(file, *separatorFlag),
-			getSize(file, *separatorFlag),
-			getTime(file, *separatorFlag),
-			name)
-		fmt.Println()
+		os.Stdout.WriteString(name)
+		os.Stdout.WriteString("\n")
 	} else {
 		if *treeFlag {
-			fmt.Print(makeTree(corners), name)
-			fmt.Println()
+			os.Stdout.WriteString(makeTree(corners))
+			os.Stdout.WriteString(name)
+			os.Stdout.WriteString("\n")
 		} else {
 			grid.Add(name)
 		}
 	}
 
 	if *recursiveFlag && file.IsDir() {
-		printDir(srcTree{file.Name(), file, depth + 1, corners})
+		printDir(file.Name(), file, depth+1, corners)
 	}
 }
 
 func checkBiggestValues(f ipe.File) {
-	if !show(f) {
+	if !show(f, allFlag, ignoreFlag) {
 		return
 	}
 	if m := len(fmtMode(f)); m > biggestMode {
@@ -175,8 +180,8 @@ func checkBiggestValues(f ipe.File) {
 	}
 }
 
-func show(f ipe.File) bool {
-	return (*allFlag || !f.IsDotfile()) && (*ignoreFlag == nil || !(*ignoreFlag).MatchString(f.Name()))
+func show(f ipe.File, all *bool, ignore **regexp.Regexp) bool {
+	return (*all || !f.IsDotfile()) && (*ignore == nil || !(*ignore).MatchString(f.Name()))
 }
 
 func getMode(f ipe.File, sep string) string {
@@ -251,6 +256,6 @@ func reverse(a []ipe.File) {
 }
 
 func endWithErr(err string) {
-	fmt.Println(err)
+	os.Stdout.WriteString(err)
 	os.Exit(1)
 }
