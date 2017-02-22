@@ -100,8 +100,7 @@ func printDir(src string, file ipe.File, depth int, corners []bool) {
 		return
 	}
 	fs := file.Children()
-	if fs == nil {
-		fmt.Println("Something went wrong with", src)
+	if fs == nil || len(fs) == 0 {
 		return
 	}
 
@@ -114,7 +113,7 @@ func printDir(src string, file ipe.File, depth int, corners []bool) {
 
 	// First loop: preparation.
 	for _, f := range fs {
-		checkBiggestValues(f)
+		checkBiggestValues(f, *allFlag, *ignoreFlag)
 	}
 
 	// Second loop: printing.
@@ -128,7 +127,7 @@ func printDir(src string, file ipe.File, depth int, corners []bool) {
 }
 
 func printFile(file ipe.File, grid *gridt.Grid, depth int, corners []bool) {
-	if !show(file, allFlag, ignoreFlag) {
+	if !show(file, *allFlag, *ignoreFlag) {
 		return
 	}
 
@@ -159,8 +158,8 @@ func printFile(file ipe.File, grid *gridt.Grid, depth int, corners []bool) {
 	}
 }
 
-func checkBiggestValues(f ipe.File) {
-	if !show(f, allFlag, ignoreFlag) {
+func checkBiggestValues(f ipe.File, all bool, ignore *regexp.Regexp) {
+	if !show(f, all, ignore) {
 		return
 	}
 	if m := len(fmtMode(f)); m > biggestMode {
@@ -174,13 +173,13 @@ func checkBiggestValues(f ipe.File) {
 	}
 	if *recursiveFlag {
 		for _, ff := range f.Children() {
-			checkBiggestValues(ff)
+			checkBiggestValues(ff, all, ignore)
 		}
 	}
 }
 
-func show(f ipe.File, all *bool, ignore **regexp.Regexp) bool {
-	return (*all || !f.IsDotfile()) && (*ignore == nil || !(*ignore).MatchString(f.Name()))
+func show(f ipe.File, all bool, ignore *regexp.Regexp) bool {
+	return (all || !f.IsDotfile()) && (ignore == nil || !ignore.MatchString(f.Name()))
 }
 
 func getMode(f ipe.File, sep string) string {
