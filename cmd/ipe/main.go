@@ -39,6 +39,7 @@ var (
 	recursiveFlag     = kingpin.Flag("recursive", "list subdirectories recursively").Short('R').Bool()
 	treeFlag          = kingpin.Flag("tree", "shows the entries in the tree view").Short('t').Bool()
 
+	gridView                              bool
 	biggestMode, biggestSize, biggestTime int
 	grids                                 []dirGrid
 )
@@ -55,6 +56,8 @@ func main() {
 		color.NoColor = *colorFlag == colorNever
 	}
 
+	gridView = !*longFlag && !*treeFlag
+
 	grids = make([]dirGrid, 0)
 	width, _, err := trena.Size()
 	if err != nil {
@@ -69,7 +72,7 @@ func main() {
 		printDir(src, f, 0, []bool{})
 	}
 
-	if !*longFlag && !*treeFlag {
+	if gridView {
 		for _, grid := range grids {
 			if len(grids) > 1 {
 				os.Stdout.WriteString(grid.file.FullName())
@@ -136,23 +139,19 @@ func printFile(file ipe.File, grid *gridt.Grid, depth int, corners []bool) {
 		name = file.Name()
 	}
 
-	if *longFlag {
-		os.Stdout.WriteString(getMode(file, *separatorFlag))
-		os.Stdout.WriteString(getSize(file, *separatorFlag))
-		os.Stdout.WriteString(getTime(file, *separatorFlag))
+	if !gridView {
+		if *longFlag {
+			os.Stdout.WriteString(getMode(file, *separatorFlag))
+			os.Stdout.WriteString(getSize(file, *separatorFlag))
+			os.Stdout.WriteString(getTime(file, *separatorFlag))
+		}
 		if *treeFlag {
 			os.Stdout.WriteString(makeTree(corners))
 		}
 		os.Stdout.WriteString(name)
 		os.Stdout.WriteString("\n")
 	} else {
-		if *treeFlag {
-			os.Stdout.WriteString(makeTree(corners))
-			os.Stdout.WriteString(name)
-			os.Stdout.WriteString("\n")
-		} else {
-			grid.Add(name)
-		}
+		grid.Add(name)
 	}
 
 	if *recursiveFlag && file.IsDir() {
