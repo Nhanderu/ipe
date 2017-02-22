@@ -38,9 +38,9 @@ var (
 	recursiveFlag     = kingpin.Flag("recursive", "list subdirectories recursively").Short('R').Bool()
 	treeFlag          = kingpin.Flag("tree", "shows the entries in the tree view").Short('t').Bool()
 
-	width, biggestMode, biggestSize, biggestTime int
-	grid                                         *gridt.Grid
-	srcs                                         *[]srcTree
+	biggestMode, biggestSize, biggestTime int
+	grid                                  *gridt.Grid
+	srcs                                  []srcTree
 )
 
 type srcTree struct {
@@ -53,47 +53,22 @@ type srcTree struct {
 func main() {
 	kingpin.Parse()
 
-	srcs = new([]srcTree)
-	*srcs = make([]srcTree, len(*srcArg))
+	srcs = make([]srcTree, len(*srcArg))
 	for i, src := range *srcArg {
 		f, err := ipe.Read(src)
 		if err != nil {
 			endWithErr(err.Error())
 		}
-		(*srcs)[i] = srcTree{src, f, 0, []bool{}}
+		srcs[i] = srcTree{src, f, 0, []bool{}}
 	}
 
-	for _, src := range *srcs {
-		if len(*srcs) > 1 {
+	for _, src := range srcs {
+		if len(srcs) > 1 {
 			fmt.Println(src.file.FullName(), "->")
 		}
 		printDir(src)
 		fmt.Println()
 	}
-}
-
-func checkBiggestValues(f ipe.File) {
-	if !show(f) {
-		return
-	}
-	if m := len(fmtMode(f)); m > biggestMode {
-		biggestMode = m
-	}
-	if s := len(fmtSize(f)); s > biggestSize {
-		biggestSize = s
-	}
-	if t := len(fmtTime(f)); t > biggestTime {
-		biggestTime = t
-	}
-	if *recursiveFlag {
-		for _, ff := range f.Children() {
-			checkBiggestValues(ff)
-		}
-	}
-}
-
-func show(f ipe.File) bool {
-	return (*allFlag || !f.IsDotfile()) && (*ignoreFlag == nil || !(*ignoreFlag).MatchString(f.Name()))
 }
 
 func printDir(src srcTree) {
@@ -108,8 +83,7 @@ func printDir(src srcTree) {
 	}
 
 	// Gets the necessary info.
-	var err error
-	width, _, err = trena.Size()
+	width, _, err := trena.Size()
 	if err != nil {
 		endWithErr(err.Error())
 	}
@@ -129,7 +103,7 @@ func printDir(src srcTree) {
 	}
 
 	if !*treeFlag && !*longFlag {
-		g, ok := grid.FitIntoWidth(uint(width))
+		g, ok := grid.FitIntoWidth(width)
 		if !ok {
 			for _, cell := range grid.Cells() {
 				fmt.Println(cell)
@@ -179,6 +153,30 @@ func printFile(file ipe.File, depth int, corners []bool) {
 	if *recursiveFlag && file.IsDir() {
 		printDir(srcTree{file.Name(), file, depth + 1, corners})
 	}
+}
+
+func checkBiggestValues(f ipe.File) {
+	if !show(f) {
+		return
+	}
+	if m := len(fmtMode(f)); m > biggestMode {
+		biggestMode = m
+	}
+	if s := len(fmtSize(f)); s > biggestSize {
+		biggestSize = s
+	}
+	if t := len(fmtTime(f)); t > biggestTime {
+		biggestTime = t
+	}
+	if *recursiveFlag {
+		for _, ff := range f.Children() {
+			checkBiggestValues(ff)
+		}
+	}
+}
+
+func show(f ipe.File) bool {
+	return (*allFlag || !f.IsDotfile()) && (*ignoreFlag == nil || !(*ignoreFlag).MatchString(f.Name()))
 }
 
 func getMode(f ipe.File, sep string) string {
