@@ -3,9 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
-	"time"
-
 	"regexp"
+	"time"
 
 	"github.com/Nhanderu/gridt"
 	"github.com/Nhanderu/ipe"
@@ -28,7 +27,7 @@ const (
 )
 
 var (
-	srcArg            = kingpin.Arg("src", "the directory to list contents").Default(".").Strings()
+	sourceArg         = kingpin.Arg("source", "the directory to list contents").Default(".").Strings()
 	separatorFlag     = kingpin.Flag("separator", "separator of the columns").Short('S').Default("  ").String()
 	allFlag           = kingpin.Flag("all", "do not hide entries starting with .").Short('a').Bool()
 	colorFlag         = kingpin.Flag("color", "control whether color is used to distinguish file types").Enum(colorNever, colorAlways, colorAuto)
@@ -62,7 +61,7 @@ func main() {
 		endWithErr(err.Error())
 	}
 
-	for _, src := range *srcArg {
+	for _, src := range *sourceArg {
 		f, err := ipe.Read(src)
 		if err != nil {
 			endWithErr(err.Error())
@@ -80,6 +79,7 @@ func main() {
 			if !ok {
 				for _, cell := range grid.grid.Cells() {
 					os.Stdout.WriteString(cell)
+					os.Stdout.WriteString("\n")
 				}
 			} else {
 				os.Stdout.WriteString(g.String())
