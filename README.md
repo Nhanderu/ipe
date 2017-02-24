@@ -41,7 +41,6 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
   - [ ] `--quoting-style`
   - [x] `-r`, `--reverse`
   - [x] `-R`, `--recursive`
-  - [ ] `-s`, `--size`
   - [ ] `--sort`
   - [ ] `--time`
   - [ ] `--time-style`
@@ -56,11 +55,13 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
   - [ ] `--version`
 - [ ] Make special features
   - [x] Tree view (-t)
-  - [x] Separator of columns in long view
+  - [x] Separator of columns in long view (-S)
   - [x] Flag to specify maximum depth of recursion (-D)
-  - [ ] Flag to sort by an column/field
-  - [ ] Flag to get one item per line
+  - [ ] Flag to sort by an column/field (-s)
   - [x] Flag to filter entries (-f)
+  - [ ] Flag to show headers on long view (-h)
+  - [ ] Differentiate files types
+  - [ ] Get user and group in Windows
 - [ ] Define colors
 - [ ] Add [Git integration][3]
   - [ ] Ignore "Git ignored" files by default
