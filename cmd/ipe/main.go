@@ -42,10 +42,12 @@ var (
 	recursiveFlag = kingpin.Flag("recursive", "list subdirectories recursively").Short('R').Bool()
 	treeFlag      = kingpin.Flag("tree", "shows the entries in the tree view").Short('t').Bool()
 
-	gridView                              bool
-	biggestMode, biggestSize, biggestTime int
-	grids                                 []dirGrid
-	direction                             gridt.Direction
+	gridView                                           bool
+	biggestMode, biggestSize, biggestTime, biggestUser int
+	grids                                              []dirGrid
+	direction                                          gridt.Direction
+
+	osWindows = runtime.GOOS == "windows"
 )
 
 type dirGrid struct {
@@ -154,6 +156,7 @@ func printFile(file ipe.File, grid *gridt.Grid, depth int, corners []bool) {
 			os.Stdout.WriteString(getMode(file, *separatorFlag))
 			os.Stdout.WriteString(getSize(file, *separatorFlag))
 			os.Stdout.WriteString(getTime(file, *separatorFlag))
+			os.Stdout.WriteString(getUser(file, *separatorFlag))
 		}
 		if *treeFlag {
 			os.Stdout.WriteString(makeTree(corners))
@@ -181,6 +184,9 @@ func checkBiggestValues(f ipe.File, all bool, ignore, filter *regexp.Regexp) {
 	}
 	if t := len(fmtTime(f)); t > biggestTime {
 		biggestTime = t
+	}
+	if u := len(fmtUser(f)); u > biggestUser {
+		biggestUser = u
 	}
 	if *recursiveFlag {
 		for _, ff := range f.Children() {
@@ -237,6 +243,20 @@ func fmtTime(f ipe.File) string {
 		return fmt.Sprintf("%s%2d:%02d", str, t.Hour(), t.Minute())
 	}
 	return fmt.Sprintf("%s%d", str, year)
+}
+
+func getUser(f ipe.File, sep string) string {
+	if osWindows {
+		return ""
+	}
+	return addSep(text.PadLeft(fmtUser(f), " ", biggestUser), sep)
+}
+
+func fmtUser(f ipe.File) string {
+	if osWindows {
+		return ""
+	}
+	return f.User().Username
 }
 
 func makeTree(corners []bool) string {
