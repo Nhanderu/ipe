@@ -29,6 +29,7 @@ const (
 var (
 	sourceArg         = kingpin.Arg("source", "the directory to list contents").Default(".").Strings()
 	separatorFlag     = kingpin.Flag("separator", "separator of the columns").Short('S').Default("  ").String()
+	acrossFlag        = kingpin.Flag("across", "list entries by lines instead of by columns").Short('x').Bool()
 	allFlag           = kingpin.Flag("all", "do not hide entries starting with .").Short('a').Bool()
 	colorFlag         = kingpin.Flag("color", "control whether color is used to distinguish file types").Enum(colorNever, colorAlways, colorAuto)
 	classifyFlag      = kingpin.Flag("classify", "append indicator (one of /=@|) to entries").Short('F').Bool()
@@ -42,6 +43,7 @@ var (
 	gridView                              bool
 	biggestMode, biggestSize, biggestTime int
 	grids                                 []dirGrid
+	direction                             gridt.Direction
 )
 
 type dirGrid struct {
@@ -54,6 +56,12 @@ func main() {
 
 	if *colorFlag != colorAuto {
 		color.NoColor = *colorFlag == colorNever
+	}
+
+	if *acrossFlag {
+		direction = gridt.LeftToRight
+	} else {
+		direction = gridt.TopToBottom
 	}
 
 	gridView = !*longFlag && !*treeFlag
@@ -104,7 +112,7 @@ func printDir(src string, file ipe.File, depth int, corners []bool) {
 		return
 	}
 
-	grid := gridt.New(gridt.TopToBottom, *separatorFlag)
+	grid := gridt.New(direction, *separatorFlag)
 	grids = append(grids, dirGrid{file, grid})
 
 	if *reverseFlag {
@@ -255,5 +263,6 @@ func reverse(a []ipe.File) {
 
 func endWithErr(err string) {
 	os.Stdout.WriteString(err)
+	os.Stdout.WriteString("\n")
 	os.Exit(1)
 }
