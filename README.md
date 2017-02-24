@@ -67,6 +67,7 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
   - [ ] Ignore "Git ignored" files by default
   - [ ] Show files' Git status 
 - [ ] Change it into a lib
+- [ ] Create GridFormatter, or something like that
 
 ### License
 
