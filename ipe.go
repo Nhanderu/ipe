@@ -30,13 +30,13 @@ func (f File) Name() string { return f.name }
 func (f File) ClassifiedName() string {
 	switch {
 	case f.IsDir():
-		return fmt.Sprint(f.Name(), "/")
+		return fmt.Sprint(f.name, "/")
 	case f.IsSymlink():
-		return fmt.Sprint(f.Name(), "@")
+		return fmt.Sprint(f.name, "@")
 	case f.IsNamedPipe():
-		return fmt.Sprint(f.Name(), "|")
+		return fmt.Sprint(f.name, "|")
 	case f.IsSocket():
-		return fmt.Sprint(f.Name(), "=")
+		return fmt.Sprint(f.name, "=")
 	default:
 		return f.Name()
 	}
