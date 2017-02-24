@@ -23,7 +23,6 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
   - [ ] `--full-time`
   - [ ] `-g`
   - [ ] `-G`, `--no-group`
-  - [x] `-h`, `--human-readable`
   - [ ] `-H`, `--dereference-command-line`
   - [ ] `--dereference-command-line-symlink-to-dir`
   - [ ] `--indicator-style`
@@ -62,7 +61,7 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
   - [ ] Flag to specify maximum depth of recursion
   - [ ] Flag to sort by an column/field
   - [ ] Flag to get one item per line
-  - [ ] Flag to filter entries (-f)
+  - [x] Flag to filter entries (-f)
 - [ ] Define colors
 - [ ] Add [Git integration][3]
   - [ ] Ignore "Git ignored" files by default
