@@ -47,7 +47,7 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
   - [ ] `-T`, `--tabsize`
   - [ ] `-w`, `--width`
   - [x] `-x`
-  - [ ] `-1`
+  - [x] `-1`
   - [ ] `--lcontext`
   - [ ] `-Z`, `--context`
   - [ ] `--scontext`
@@ -61,7 +61,7 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
   - [x] Flag to filter entries (-f)
   - [ ] Flag to show headers on long view (-h)
   - [ ] Differentiate files types
-  - [ ] Get user and group in Windows
+  - [ ] Get inode, user and group in Windows
 - [ ] Define colors
 - [ ] Add [Git integration][3]
   - [ ] Ignore "Git ignored" files by default
