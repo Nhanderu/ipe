@@ -208,6 +208,9 @@ func getSize(f ipe.File, sep string) string {
 }
 
 func fmtSize(f ipe.File) string {
+	if !f.IsRegular() {
+		return "-"
+	}
 	s := f.Size()
 	if s < kilobyte {
 		return fmt.Sprintf("%dB", s)
