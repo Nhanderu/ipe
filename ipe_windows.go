@@ -22,9 +22,9 @@ func newFile(dir string, fi os.FileInfo) (File, error) {
 		time.Unix(0, sys.LastWriteTime.Nanoseconds()),
 		time.Unix(0, sys.CreationTime.Nanoseconds()),
 		fi.Mode(),
-		nil,
-		nil,
-		0,
-		fi.Sys(),
+		nil, // That's a problem.
+		nil, // That's a problem.
+		0,   // That's a problem.
+		sys,
 	}, nil
 }

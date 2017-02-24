@@ -35,6 +35,6 @@ func newFile(dir string, fi os.FileInfo) (File, error) {
 		u,
 		g,
 		sys.Ino,
-		fi.Sys(),
+		sys,
 	}, nil
 }
