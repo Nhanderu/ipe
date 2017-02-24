@@ -17,7 +17,6 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
   - [ ] `-C`
   - [x] `--color`
   - [ ] `-d`, `--directory`
-  - [ ] `-D`, `--dired`
   - [x] `-F`, `--classify`
   - [ ] `--format`
   - [ ] `--full-time`
@@ -58,7 +57,7 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
 - [ ] Make special features
   - [x] Tree view (-t)
   - [x] Separator of columns in long view
-  - [ ] Flag to specify maximum depth of recursion
+  - [x] Flag to specify maximum depth of recursion (-D)
   - [ ] Flag to sort by an column/field
   - [ ] Flag to get one item per line
   - [x] Flag to filter entries (-f)

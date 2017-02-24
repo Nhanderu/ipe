@@ -35,6 +35,7 @@ var (
 	allFlag       = kingpin.Flag("all", "do not hide entries starting with .").Short('a').Bool()
 	colorFlag     = kingpin.Flag("color", "control whether color is used to distinguish file types").Enum(colorNever, colorAlways, colorAuto)
 	classifyFlag  = kingpin.Flag("classify", "append indicator to the entries").Short('F').Bool()
+	depthFlag     = kingpin.Flag("depth", "maximum depth of recursion").Short('D').Int()
 	filterFlag    = kingpin.Flag("filter", "only show entries that matches the pattern").Short('f').Regexp()
 	ignoreFlag    = kingpin.Flag("ignore", "do not show entries that matches the pattern").Short('I').Regexp()
 	longFlag      = kingpin.Flag("long", "show entries in the \"long view\"").Short('l').Bool()
@@ -82,7 +83,7 @@ func main() {
 		if err != nil {
 			endWithErr(err.Error())
 		}
-		printDir(src, f, 0, []bool{})
+		printDir(src, f, []bool{})
 	}
 
 	if gridView {
@@ -107,7 +108,7 @@ func main() {
 	}
 }
 
-func printDir(src string, file ipe.File, depth int, corners []bool) {
+func printDir(src string, file ipe.File, corners []bool) {
 	if !file.IsDir() {
 		fmt.Println(src, "is not a directory")
 		return
@@ -134,12 +135,11 @@ func printDir(src string, file ipe.File, depth int, corners []bool) {
 		printFile(
 			f,
 			grid,
-			depth,
 			append(corners, ii+1 == len(fs)))
 	}
 }
 
-func printFile(file ipe.File, grid *gridt.Grid, depth int, corners []bool) {
+func printFile(file ipe.File, grid *gridt.Grid, corners []bool) {
 	if !show(file, *allFlag, *ignoreFlag, *filterFlag) {
 		return
 	}
@@ -167,8 +167,8 @@ func printFile(file ipe.File, grid *gridt.Grid, depth int, corners []bool) {
 		grid.Add(name)
 	}
 
-	if *recursiveFlag && file.IsDir() {
-		printDir(file.Name(), file, depth+1, corners)
+	if *recursiveFlag && file.IsDir() && (*depthFlag == 0 || *depthFlag >= len(corners)) {
+		printDir(file.Name(), file, corners)
 	}
 }
 
