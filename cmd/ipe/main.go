@@ -39,6 +39,7 @@ var (
 	filterFlag    = kingpin.Flag("filter", "only show entries that matches the pattern").Short('f').Regexp()
 	ignoreFlag    = kingpin.Flag("ignore", "do not show entries that matches the pattern").Short('I').Regexp()
 	longFlag      = kingpin.Flag("long", "show entries in the \"long view\"").Short('l').Bool()
+	oneLine       = kingpin.Flag("one-line", "show one entry per line").Short('1').Bool()
 	reverseFlag   = kingpin.Flag("reverse", "reverse order of entries").Short('r').Bool()
 	recursiveFlag = kingpin.Flag("recursive", "list subdirectories recursively").Short('R').Bool()
 	treeFlag      = kingpin.Flag("tree", "shows the entries in the tree view").Short('t').Bool()
@@ -93,7 +94,7 @@ func main() {
 				os.Stdout.WriteString("\n")
 			}
 			g, ok := grid.grid.FitIntoWidth(width)
-			if !ok {
+			if !ok || *oneLine {
 				for _, cell := range grid.grid.Cells() {
 					os.Stdout.WriteString(cell)
 					os.Stdout.WriteString("\n")
