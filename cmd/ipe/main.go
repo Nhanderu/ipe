@@ -5,6 +5,7 @@ import (
 	"os"
 	"regexp"
 	"runtime"
+	"strconv"
 	"time"
 
 	"strings"
@@ -38,16 +39,17 @@ var (
 	depthFlag     = kingpin.Flag("depth", "maximum depth of recursion").Short('D').Int()
 	filterFlag    = kingpin.Flag("filter", "only show entries that matches the pattern").Short('f').Regexp()
 	ignoreFlag    = kingpin.Flag("ignore", "do not show entries that matches the pattern").Short('I').Regexp()
+	inodeFlag     = kingpin.Flag("inode", "show entry inode").Short('i').Bool()
 	longFlag      = kingpin.Flag("long", "show entries in the \"long view\"").Short('l').Bool()
 	oneLine       = kingpin.Flag("one-line", "show one entry per line").Short('1').Bool()
 	reverseFlag   = kingpin.Flag("reverse", "reverse order of entries").Short('r').Bool()
 	recursiveFlag = kingpin.Flag("recursive", "list subdirectories recursively").Short('R').Bool()
 	treeFlag      = kingpin.Flag("tree", "shows the entries in the tree view").Short('t').Bool()
 
-	gridView                                           bool
-	biggestMode, biggestSize, biggestTime, biggestUser int
-	grids                                              []dirGrid
-	direction                                          gridt.Direction
+	gridView                                          bool
+	bgstMode, bgstSize, bgstTime, bgstUser, bgstInode int
+	grids                                             []dirGrid
+	direction                                         gridt.Direction
 
 	osWindows = runtime.GOOS == "windows"
 )
@@ -154,6 +156,9 @@ func printFile(file ipe.File, grid *gridt.Grid, corners []bool) {
 
 	if !gridView {
 		if *longFlag {
+			if *inodeFlag {
+				os.Stdout.WriteString(getInode(file, *separatorFlag))
+			}
 			os.Stdout.WriteString(getMode(file, *separatorFlag))
 			os.Stdout.WriteString(getSize(file, *separatorFlag))
 			os.Stdout.WriteString(getTime(file, *separatorFlag))
@@ -177,17 +182,20 @@ func checkBiggestValues(f ipe.File, all bool, ignore, filter *regexp.Regexp) {
 	if !show(f, all, ignore, filter) {
 		return
 	}
-	if m := len(fmtMode(f)); m > biggestMode {
-		biggestMode = m
+	if m := len(fmtMode(f)); m > bgstMode {
+		bgstMode = m
 	}
-	if s := len(fmtSize(f)); s > biggestSize {
-		biggestSize = s
+	if s := len(fmtSize(f)); s > bgstSize {
+		bgstSize = s
 	}
-	if t := len(fmtTime(f)); t > biggestTime {
-		biggestTime = t
+	if t := len(fmtTime(f)); t > bgstTime {
+		bgstTime = t
 	}
-	if u := len(fmtUser(f)); u > biggestUser {
-		biggestUser = u
+	if u := len(fmtUser(f)); u > bgstUser {
+		bgstUser = u
+	}
+	if i := len(fmtInode(f)); i > bgstInode {
+		bgstInode = i
 	}
 	if *recursiveFlag {
 		for _, ff := range f.Children() {
@@ -202,8 +210,22 @@ func show(f ipe.File, all bool, ignore, filter *regexp.Regexp) bool {
 		(filter == nil || filter.MatchString(f.Name()))
 }
 
+func getInode(f ipe.File, sep string) string {
+	if osWindows {
+		return ""
+	}
+	return addSep(text.PadLeft(fmtInode(f), " ", bgstInode), sep)
+}
+
+func fmtInode(f ipe.File) string {
+	if osWindows {
+		return ""
+	}
+	return strconv.FormatUint(f.Inode(), 10)
+}
+
 func getMode(f ipe.File, sep string) string {
-	return addSep(text.PadLeft(fmtMode(f), " ", biggestMode), sep)
+	return addSep(text.PadLeft(fmtMode(f), " ", bgstMode), sep)
 }
 
 func fmtMode(f ipe.File) string {
@@ -211,7 +233,7 @@ func fmtMode(f ipe.File) string {
 }
 
 func getSize(f ipe.File, sep string) string {
-	return addSep(text.PadLeft(fmtSize(f), " ", biggestSize), sep)
+	return addSep(text.PadLeft(fmtSize(f), " ", bgstSize), sep)
 }
 
 func fmtSize(f ipe.File) string {
@@ -233,7 +255,7 @@ func fmtSize(f ipe.File) string {
 }
 
 func getTime(f ipe.File, sep string) string {
-	return addSep(text.PadRight(fmtTime(f), " ", biggestTime), sep)
+	return addSep(text.PadRight(fmtTime(f), " ", bgstTime), sep)
 }
 
 func fmtTime(f ipe.File) string {
@@ -250,7 +272,7 @@ func getUser(f ipe.File, sep string) string {
 	if osWindows {
 		return ""
 	}
-	return addSep(text.PadLeft(fmtUser(f), " ", biggestUser), sep)
+	return addSep(text.PadLeft(fmtUser(f), " ", bgstUser), sep)
 }
 
 func fmtUser(f ipe.File) string {
@@ -294,7 +316,7 @@ func endWithErr(err string) {
 }
 
 func fixSrc(src string) string {
-	if runtime.GOOS == "windows" {
+	if osWindows {
 		return strings.Replace(src, "~", os.Getenv("USERPROFILE"), -1)
 	}
 	return src

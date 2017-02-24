@@ -99,6 +99,9 @@ func (f File) User() *user.User { return f.user }
 // Group returns the user group of the file.
 func (f File) Group() *user.Group { return f.group }
 
+// Inode returns the file inode.
+func (f File) Inode() uint64 { return f.inode }
+
 // Sys represents the underlying data source of the file.
 func (f File) Sys() interface{} { return f.sys }
 
