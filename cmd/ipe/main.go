@@ -46,10 +46,10 @@ var (
 	recursiveFlag = kingpin.Flag("recursive", "list subdirectories recursively").Short('R').Bool()
 	treeFlag      = kingpin.Flag("tree", "shows the entries in the tree view").Short('t').Bool()
 
-	gridView                                          bool
-	bgstMode, bgstSize, bgstTime, bgstUser, bgstInode int
-	grids                                             []dirGrid
-	direction                                         gridt.Direction
+	gridView                                bool
+	bgstMode, bgstSize, bgstUser, bgstInode int
+	grids                                   []dirGrid
+	direction                               gridt.Direction
 
 	osWindows = runtime.GOOS == "windows"
 )
@@ -157,12 +157,12 @@ func printFile(file ipe.File, grid *gridt.Grid, corners []bool) {
 	if !gridView {
 		if *longFlag {
 			if *inodeFlag {
-				os.Stdout.WriteString(getInode(file, *separatorFlag))
+				os.Stdout.WriteString(fmtColumn(fmtInode(file), *separatorFlag, bgstInode, !osWindows))
 			}
-			os.Stdout.WriteString(getMode(file, *separatorFlag))
-			os.Stdout.WriteString(getSize(file, *separatorFlag))
-			os.Stdout.WriteString(getTime(file, *separatorFlag))
-			os.Stdout.WriteString(getUser(file, *separatorFlag))
+			os.Stdout.WriteString(fmtColumn(fmtMode(file), *separatorFlag, bgstMode))
+			os.Stdout.WriteString(fmtColumn(fmtSize(file), *separatorFlag, bgstSize))
+			os.Stdout.WriteString(fmtColumn(fmtTime(file), *separatorFlag, 0))
+			os.Stdout.WriteString(fmtColumn(fmtUser(file), *separatorFlag, bgstUser, !osWindows))
 		}
 		if *treeFlag {
 			os.Stdout.WriteString(makeTree(corners))
@@ -188,9 +188,6 @@ func checkBiggestValues(f ipe.File, all bool, ignore, filter *regexp.Regexp) {
 	if s := len(fmtSize(f)); s > bgstSize {
 		bgstSize = s
 	}
-	if t := len(fmtTime(f)); t > bgstTime {
-		bgstTime = t
-	}
 	if u := len(fmtUser(f)); u > bgstUser {
 		bgstUser = u
 	}
@@ -210,11 +207,13 @@ func show(f ipe.File, all bool, ignore, filter *regexp.Regexp) bool {
 		(filter == nil || filter.MatchString(f.Name()))
 }
 
-func getInode(f ipe.File, sep string) string {
-	if osWindows {
-		return ""
+func fmtColumn(column, sep string, size int, conds ...bool) string {
+	for _, c := range conds {
+		if !c {
+			return ""
+		}
 	}
-	return addSep(text.PadLeft(fmtInode(f), " ", bgstInode), sep)
+	return addSep(text.PadLeft(column, " ", size), sep)
 }
 
 func fmtInode(f ipe.File) string {
@@ -224,16 +223,8 @@ func fmtInode(f ipe.File) string {
 	return strconv.FormatUint(f.Inode(), 10)
 }
 
-func getMode(f ipe.File, sep string) string {
-	return addSep(text.PadLeft(fmtMode(f), " ", bgstMode), sep)
-}
-
 func fmtMode(f ipe.File) string {
 	return f.Mode().String()
-}
-
-func getSize(f ipe.File, sep string) string {
-	return addSep(text.PadLeft(fmtSize(f), " ", bgstSize), sep)
 }
 
 func fmtSize(f ipe.File) string {
@@ -254,10 +245,6 @@ func fmtSize(f ipe.File) string {
 	}
 }
 
-func getTime(f ipe.File, sep string) string {
-	return addSep(text.PadRight(fmtTime(f), " ", bgstTime), sep)
-}
-
 func fmtTime(f ipe.File) string {
 	t := f.ModTime()
 	year, month, day := t.Date()
@@ -265,14 +252,7 @@ func fmtTime(f ipe.File) string {
 	if year == time.Now().Year() {
 		return fmt.Sprintf("%s%2d:%02d", str, t.Hour(), t.Minute())
 	}
-	return fmt.Sprintf("%s%d", str, year)
-}
-
-func getUser(f ipe.File, sep string) string {
-	if osWindows {
-		return ""
-	}
-	return addSep(text.PadLeft(fmtUser(f), " ", bgstUser), sep)
+	return fmt.Sprintf("%s%d ", str, year)
 }
 
 func fmtUser(f ipe.File) string {
@@ -310,6 +290,8 @@ func reverse(a []ipe.File) {
 }
 
 func endWithErr(err string) {
+	os.Stdout.WriteString(os.Args[0])
+	os.Stdout.WriteString(" error: ")
 	os.Stdout.WriteString(err)
 	os.Stdout.WriteString("\n")
 	os.Exit(1)
