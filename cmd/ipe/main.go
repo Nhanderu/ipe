@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"runtime"
 	"time"
+
+	"strings"
 
 	"github.com/Nhanderu/gridt"
 	"github.com/Nhanderu/ipe"
@@ -73,6 +76,7 @@ func main() {
 	}
 
 	for _, src := range *sourceArg {
+		src = fixSrc(src)
 		f, err := ipe.Read(src)
 		if err != nil {
 			endWithErr(err.Error())
@@ -265,4 +269,11 @@ func endWithErr(err string) {
 	os.Stdout.WriteString(err)
 	os.Stdout.WriteString("\n")
 	os.Exit(1)
+}
+
+func fixSrc(src string) string {
+	if runtime.GOOS == "windows" {
+		return strings.Replace(src, "~", os.Getenv("USERPROFILE"), -1)
+	}
+	return src
 }
