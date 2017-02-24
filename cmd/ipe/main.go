@@ -12,7 +12,6 @@ import (
 	"github.com/Nhanderu/gridt"
 	"github.com/Nhanderu/ipe"
 	"github.com/Nhanderu/trena"
-	"github.com/Nhanderu/tuyo/convert"
 	"github.com/Nhanderu/tuyo/text"
 	"github.com/fatih/color"
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -30,18 +29,18 @@ const (
 )
 
 var (
-	sourceArg         = kingpin.Arg("source", "the directory to list contents").Default(".").Strings()
-	separatorFlag     = kingpin.Flag("separator", "separator of the columns").Short('S').Default("  ").String()
-	acrossFlag        = kingpin.Flag("across", "list entries by lines instead of by columns").Short('x').Bool()
-	allFlag           = kingpin.Flag("all", "do not hide entries starting with .").Short('a').Bool()
-	colorFlag         = kingpin.Flag("color", "control whether color is used to distinguish file types").Enum(colorNever, colorAlways, colorAuto)
-	classifyFlag      = kingpin.Flag("classify", "append indicator (one of /=@|) to entries").Short('F').Bool()
-	humanReadableFlag = kingpin.Flag("human-readable", "print sizes in human readable format (e.g., 1K 234M 2G)").Short('h').Bool()
-	ignoreFlag        = kingpin.Flag("ignore", "to not list implied entries matching shell PATTERN").Short('I').Regexp()
-	longFlag          = kingpin.Flag("long", "use a long listing format").Short('l').Bool()
-	reverseFlag       = kingpin.Flag("reverse", "reverse order while sorting").Short('r').Bool()
-	recursiveFlag     = kingpin.Flag("recursive", "list subdirectories recursively").Short('R').Bool()
-	treeFlag          = kingpin.Flag("tree", "shows the entries in the tree view").Short('t').Bool()
+	sourceArg     = kingpin.Arg("source", "the directory to list contents").Default(".").Strings()
+	separatorFlag = kingpin.Flag("separator", "separator of the columns").Short('S').Default("  ").String()
+	acrossFlag    = kingpin.Flag("across", "writes the entries by lines instead of by columns").Short('x').Bool()
+	allFlag       = kingpin.Flag("all", "do not hide entries starting with .").Short('a').Bool()
+	colorFlag     = kingpin.Flag("color", "control whether color is used to distinguish file types").Enum(colorNever, colorAlways, colorAuto)
+	classifyFlag  = kingpin.Flag("classify", "append indicator to the entries").Short('F').Bool()
+	filterFlag    = kingpin.Flag("filter", "only show entries that matches the pattern").Short('f').Regexp()
+	ignoreFlag    = kingpin.Flag("ignore", "do not show entries that matches the pattern").Short('I').Regexp()
+	longFlag      = kingpin.Flag("long", "show entries in the \"long view\"").Short('l').Bool()
+	reverseFlag   = kingpin.Flag("reverse", "reverse order of entries").Short('r').Bool()
+	recursiveFlag = kingpin.Flag("recursive", "list subdirectories recursively").Short('R').Bool()
+	treeFlag      = kingpin.Flag("tree", "shows the entries in the tree view").Short('t').Bool()
 
 	gridView                              bool
 	biggestMode, biggestSize, biggestTime int
@@ -125,7 +124,7 @@ func printDir(src string, file ipe.File, depth int, corners []bool) {
 
 	// First loop: preparation.
 	for _, f := range fs {
-		checkBiggestValues(f, *allFlag, *ignoreFlag)
+		checkBiggestValues(f, *allFlag, *ignoreFlag, *filterFlag)
 	}
 
 	// Second loop: printing.
@@ -139,7 +138,7 @@ func printDir(src string, file ipe.File, depth int, corners []bool) {
 }
 
 func printFile(file ipe.File, grid *gridt.Grid, depth int, corners []bool) {
-	if !show(file, *allFlag, *ignoreFlag) {
+	if !show(file, *allFlag, *ignoreFlag, *filterFlag) {
 		return
 	}
 
@@ -170,8 +169,8 @@ func printFile(file ipe.File, grid *gridt.Grid, depth int, corners []bool) {
 	}
 }
 
-func checkBiggestValues(f ipe.File, all bool, ignore *regexp.Regexp) {
-	if !show(f, all, ignore) {
+func checkBiggestValues(f ipe.File, all bool, ignore, filter *regexp.Regexp) {
+	if !show(f, all, ignore, filter) {
 		return
 	}
 	if m := len(fmtMode(f)); m > biggestMode {
@@ -185,13 +184,15 @@ func checkBiggestValues(f ipe.File, all bool, ignore *regexp.Regexp) {
 	}
 	if *recursiveFlag {
 		for _, ff := range f.Children() {
-			checkBiggestValues(ff, all, ignore)
+			checkBiggestValues(ff, all, ignore, filter)
 		}
 	}
 }
 
-func show(f ipe.File, all bool, ignore *regexp.Regexp) bool {
-	return (all || !f.IsDotfile()) && (ignore == nil || !ignore.MatchString(f.Name()))
+func show(f ipe.File, all bool, ignore, filter *regexp.Regexp) bool {
+	return (all || !f.IsDotfile()) &&
+		(ignore == nil || !ignore.MatchString(f.Name())) &&
+		(filter == nil || filter.MatchString(f.Name()))
 }
 
 func getMode(f ipe.File, sep string) string {
@@ -208,9 +209,6 @@ func getSize(f ipe.File, sep string) string {
 
 func fmtSize(f ipe.File) string {
 	s := f.Size()
-	if !*humanReadableFlag {
-		return convert.ToString(s)
-	}
 	if s < kilobyte {
 		return fmt.Sprintf("%dB", s)
 	} else if s < megabyte {
