@@ -30,7 +30,7 @@ func newFile(dir string, fi os.FileInfo) (File, error) {
 		fi.Size(),
 		time.Unix(sys.Atime, sys.AtimeNsec),
 		time.Unix(sys.Mtime, sys.MtimeNsec),
-		time.Unix(sys.Ctime, sys.CtimeNsec)
+		time.Unix(sys.Ctime, sys.CtimeNsec),
 		fi.Mode(),
 		u,
 		g,
