@@ -6,6 +6,7 @@ import (
 	"errors"
 	"os"
 	"os/user"
+	"strconv"
 	"syscall"
 	"time"
 )
@@ -15,22 +16,22 @@ func newFile(dir string, fi os.FileInfo) (File, error) {
 	if sys == nil {
 		return File{}, errors.New("invalid file attributes")
 	}
-	u, err := user.LookupId(sys.Uid)
+	u, err := user.LookupId(strconv.FormatUint(uint64(sys.Uid), 10))
 	if err != nil {
 		return File{}, err
 	}
-	g, err := user.LookupGroupId(sys.Gui)
+	g, err := user.LookupGroupId(strconv.FormatUint(uint64(sys.Gid), 10))
 	if err != nil {
 		return File{}, err
 	}
-	println(time.Unix(sys.Mtime, sys.MtimeNsec) == fi.ModTime())
+	println(time.Unix(sys.Mtim.Sec, sys.Mtim.Nsec) == fi.ModTime())
 	return File{
 		fi.Name(),
 		dir,
 		fi.Size(),
-		time.Unix(sys.Atime, sys.AtimeNsec),
-		time.Unix(sys.Mtime, sys.MtimeNsec),
-		time.Unix(sys.Ctime, sys.CtimeNsec),
+		time.Unix(sys.Atim.Sec, sys.Atim.Nsec),
+		time.Unix(sys.Mtim.Sec, sys.Mtim.Nsec),
+		time.Unix(sys.Ctim.Sec, sys.Ctim.Nsec),
 		fi.Mode(),
 		u,
 		g,
