@@ -24,7 +24,6 @@ func newFile(dir string, fi os.FileInfo) (File, error) {
 	if err != nil {
 		return File{}, err
 	}
-	println(time.Unix(sys.Mtim.Sec, sys.Mtim.Nsec) == fi.ModTime())
 	return File{
 		fi.Name(),
 		dir,
