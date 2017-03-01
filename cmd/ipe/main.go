@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"regexp"
@@ -48,15 +49,16 @@ var (
 
 	gridView                                bool
 	bgstMode, bgstSize, bgstUser, bgstInode int
-	grids                                   []dirGrid
+	srcs                                    []srcInfo
 	direction                               gridt.Direction
 
 	osWindows = runtime.GOOS == "windows"
 )
 
-type dirGrid struct {
-	file ipe.File
-	grid *gridt.Grid
+type srcInfo struct {
+	file   ipe.File
+	grid   *gridt.Grid
+	buffer *bytes.Buffer
 }
 
 func main() {
@@ -73,8 +75,7 @@ func main() {
 	}
 
 	gridView = !*longFlag && !*treeFlag
-
-	grids = make([]dirGrid, 0)
+	srcs = make([]srcInfo, 0)
 	width, _, err := trena.Size()
 	if err != nil {
 		endWithErr(err.Error())
@@ -89,31 +90,33 @@ func main() {
 		printDir(src, f, []bool{})
 	}
 
-	if gridView {
-		for _, grid := range grids {
-			if len(grids) > 1 {
-				os.Stdout.WriteString(grid.file.FullName())
-				os.Stdout.WriteString("\n")
-			}
-			g, ok := grid.grid.FitIntoWidth(width)
+	writeNames := len(srcs) > 1 && !*treeFlag
+	for _, src := range srcs {
+		if writeNames {
+			os.Stdout.WriteString(src.file.FullName())
+			os.Stdout.WriteString("\n")
+		}
+		if gridView {
+			g, ok := src.grid.FitIntoWidth(width)
 			if !ok || *oneLine {
-				for _, cell := range grid.grid.Cells() {
+				for _, cell := range src.grid.Cells() {
 					os.Stdout.WriteString(cell)
 					os.Stdout.WriteString("\n")
 				}
 			} else {
 				os.Stdout.WriteString(g.String())
 			}
+		} else {
+			os.Stdout.WriteString(src.buffer.String())
+		}
+		if writeNames {
 			os.Stdout.WriteString("\n")
 		}
-	} else {
-		os.Stdout.WriteString("\n")
 	}
 }
 
 func printDir(src string, file ipe.File, corners []bool) {
 	if !file.IsDir() {
-		fmt.Println(src, "is not a directory")
 		return
 	}
 	fs := file.Children()
@@ -121,8 +124,9 @@ func printDir(src string, file ipe.File, corners []bool) {
 		return
 	}
 
+	var buffer bytes.Buffer
 	grid := gridt.New(direction, *separatorFlag)
-	grids = append(grids, dirGrid{file, grid})
+	srcs = append(srcs, srcInfo{file, grid, &buffer})
 
 	if *reverseFlag {
 		reverse(fs)
@@ -135,46 +139,45 @@ func printDir(src string, file ipe.File, corners []bool) {
 
 	// Second loop: printing.
 	for ii, f := range fs {
-		printFile(
-			f,
-			grid,
-			append(corners, ii+1 == len(fs)))
+		println(ii + 1)
+		println(len(fs))
+		printFile(srcInfo{f, grid, &buffer}, append(corners, ii+1 == len(fs)))
 	}
 }
 
-func printFile(file ipe.File, grid *gridt.Grid, corners []bool) {
-	if !show(file, *allFlag, *ignoreFlag, *filterFlag) {
+func printFile(src srcInfo, corners []bool) {
+	if !show(src.file, *allFlag, *ignoreFlag, *filterFlag) {
 		return
 	}
 
 	var name string
 	if *classifyFlag {
-		name = file.ClassifiedName()
+		name = src.file.ClassifiedName()
 	} else {
-		name = file.Name()
+		name = src.file.Name()
 	}
 
 	if !gridView {
 		if *longFlag {
 			if *inodeFlag {
-				os.Stdout.WriteString(fmtColumn(fmtInode(file), *separatorFlag, bgstInode, !osWindows))
+				src.buffer.WriteString(fmtColumn(fmtInode(src.file), *separatorFlag, bgstInode, !osWindows))
 			}
-			os.Stdout.WriteString(fmtColumn(fmtMode(file), *separatorFlag, bgstMode))
-			os.Stdout.WriteString(fmtColumn(fmtSize(file), *separatorFlag, bgstSize))
-			os.Stdout.WriteString(fmtColumn(fmtTime(file), *separatorFlag, 0))
-			os.Stdout.WriteString(fmtColumn(fmtUser(file), *separatorFlag, bgstUser, !osWindows))
+			src.buffer.WriteString(fmtColumn(fmtMode(src.file), *separatorFlag, bgstMode))
+			src.buffer.WriteString(fmtColumn(fmtSize(src.file), *separatorFlag, bgstSize))
+			src.buffer.WriteString(fmtColumn(fmtTime(src.file), *separatorFlag, 0))
+			src.buffer.WriteString(fmtColumn(fmtUser(src.file), *separatorFlag, bgstUser, !osWindows))
 		}
 		if *treeFlag {
-			os.Stdout.WriteString(makeTree(corners))
+			src.buffer.WriteString(makeTree(corners))
 		}
-		os.Stdout.WriteString(name)
-		os.Stdout.WriteString("\n")
+		src.buffer.WriteString(name)
+		src.buffer.WriteString("\n")
 	} else {
-		grid.Add(name)
+		src.grid.Add(name)
 	}
 
-	if *recursiveFlag && file.IsDir() && (*depthFlag == 0 || *depthFlag >= len(corners)) {
-		printDir(file.Name(), file, corners)
+	if *recursiveFlag && src.file.IsDir() && (*depthFlag == 0 || *depthFlag >= len(corners)) {
+		printDir(src.file.Name(), src.file, corners)
 	}
 }
 
