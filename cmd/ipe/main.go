@@ -50,6 +50,7 @@ var (
 	gridView                                bool
 	bgstMode, bgstSize, bgstUser, bgstInode int
 	srcs                                    []srcInfo
+	outBuffer                               bytes.Buffer
 	direction                               gridt.Direction
 
 	osWindows = runtime.GOOS == "windows"
@@ -90,27 +91,31 @@ func main() {
 		printDir(src, f, []bool{})
 	}
 
-	writeNames := len(srcs) > 1 && !*treeFlag
-	for _, src := range srcs {
-		if writeNames {
-			os.Stdout.WriteString(src.file.FullName())
-			os.Stdout.WriteString("\n")
-		}
-		if gridView {
-			g, ok := src.grid.FitIntoWidth(width)
-			if !ok || *oneLine {
-				for _, cell := range src.grid.Cells() {
-					os.Stdout.WriteString(cell)
-					os.Stdout.WriteString("\n")
+	if *treeFlag {
+		os.Stdout.WriteString(outBuffer.String())
+	} else {
+		writeNames := len(srcs) > 1
+		for _, src := range srcs {
+			if writeNames {
+				os.Stdout.WriteString(src.file.FullName())
+				os.Stdout.WriteString("\n")
+			}
+			if gridView {
+				g, ok := src.grid.FitIntoWidth(width)
+				if !ok || *oneLine {
+					for _, cell := range src.grid.Cells() {
+						os.Stdout.WriteString(cell)
+						os.Stdout.WriteString("\n")
+					}
+				} else {
+					os.Stdout.WriteString(g.String())
 				}
 			} else {
-				os.Stdout.WriteString(g.String())
+				os.Stdout.WriteString(src.buffer.String())
 			}
-		} else {
-			os.Stdout.WriteString(src.buffer.String())
-		}
-		if writeNames {
-			os.Stdout.WriteString("\n")
+			if writeNames {
+				os.Stdout.WriteString("\n")
+			}
 		}
 	}
 }
@@ -155,21 +160,28 @@ func printFile(src srcInfo, corners []bool) {
 		name = src.file.Name()
 	}
 
+	var buffer *bytes.Buffer
+	if *treeFlag {
+		buffer = &outBuffer
+	} else {
+		buffer = src.buffer
+	}
+
 	if !gridView {
 		if *longFlag {
 			if *inodeFlag {
-				src.buffer.WriteString(fmtColumn(fmtInode(src.file), *separatorFlag, bgstInode, !osWindows))
+				buffer.WriteString(fmtColumn(fmtInode(src.file), *separatorFlag, bgstInode, !osWindows))
 			}
-			src.buffer.WriteString(fmtColumn(fmtMode(src.file), *separatorFlag, bgstMode))
-			src.buffer.WriteString(fmtColumn(fmtSize(src.file), *separatorFlag, bgstSize))
-			src.buffer.WriteString(fmtColumn(fmtTime(src.file), *separatorFlag, 0))
-			src.buffer.WriteString(fmtColumn(fmtUser(src.file), *separatorFlag, bgstUser, !osWindows))
+			buffer.WriteString(fmtColumn(fmtMode(src.file), *separatorFlag, bgstMode))
+			buffer.WriteString(fmtColumn(fmtSize(src.file), *separatorFlag, bgstSize))
+			buffer.WriteString(fmtColumn(fmtTime(src.file), *separatorFlag, 0))
+			buffer.WriteString(fmtColumn(fmtUser(src.file), *separatorFlag, bgstUser, !osWindows))
 		}
 		if *treeFlag {
-			src.buffer.WriteString(makeTree(corners))
+			buffer.WriteString(makeTree(corners))
 		}
-		src.buffer.WriteString(name)
-		src.buffer.WriteString("\n")
+		buffer.WriteString(name)
+		buffer.WriteString("\n")
 	} else {
 		src.grid.Add(name)
 	}
