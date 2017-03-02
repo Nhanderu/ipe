@@ -4,19 +4,16 @@ import (
 	"bytes"
 	"fmt"
 	"os"
-	"regexp"
 	"runtime"
 	"strconv"
-	"time"
-
 	"strings"
+	"time"
 
 	"github.com/Nhanderu/gridt"
 	"github.com/Nhanderu/ipe"
 	"github.com/Nhanderu/trena"
 	"github.com/Nhanderu/tuyo/text"
 	"github.com/fatih/color"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 const (
@@ -24,34 +21,14 @@ const (
 	megabyte = kilobyte * 1024
 	gigabyte = megabyte * 1024
 	terabyte = gigabyte * 1024
-
-	colorNever  = "never"
-	colorAlways = "always"
-	colorAuto   = "auto"
 )
 
 var (
-	sourceArg     = kingpin.Arg("source", "the directory to list contents").Default(".").Strings()
-	separatorFlag = kingpin.Flag("separator", "separator of the columns").Short('S').Default("  ").String()
-	acrossFlag    = kingpin.Flag("across", "writes the entries by lines instead of by columns").Short('x').Bool()
-	allFlag       = kingpin.Flag("all", "do not hide entries starting with .").Short('a').Bool()
-	colorFlag     = kingpin.Flag("color", "control whether color is used to distinguish file types").Enum(colorNever, colorAlways, colorAuto)
-	classifyFlag  = kingpin.Flag("classify", "append indicator to the entries").Short('F').Bool()
-	depthFlag     = kingpin.Flag("depth", "maximum depth of recursion").Short('D').Int()
-	filterFlag    = kingpin.Flag("filter", "only show entries that matches the pattern").Short('f').Regexp()
-	ignoreFlag    = kingpin.Flag("ignore", "do not show entries that matches the pattern").Short('I').Regexp()
-	inodeFlag     = kingpin.Flag("inode", "show entry inode").Short('i').Bool()
-	longFlag      = kingpin.Flag("long", "show entries in the \"long view\"").Short('l').Bool()
-	oneLine       = kingpin.Flag("one-line", "show one entry per line").Short('1').Bool()
-	reverseFlag   = kingpin.Flag("reverse", "reverse order of entries").Short('r').Bool()
-	recursiveFlag = kingpin.Flag("recursive", "list subdirectories recursively").Short('R').Bool()
-	treeFlag      = kingpin.Flag("tree", "shows the entries in the tree view").Short('t').Bool()
-
-	gridView                                bool
-	bgstMode, bgstSize, bgstUser, bgstInode int
-	srcs                                    []srcInfo
-	outBuffer                               bytes.Buffer
-	direction                               gridt.Direction
+	gridView, treeView, longView, longTreeView bool
+	bgstMode, bgstSize, bgstUser, bgstInode    int
+	srcs                                       []srcInfo
+	outBuffer                                  bytes.Buffer
+	direction                                  gridt.Direction
 
 	osWindows = runtime.GOOS == "windows"
 )
@@ -62,36 +39,48 @@ type srcInfo struct {
 	buffer *bytes.Buffer
 }
 
-func main() {
-	kingpin.Parse()
+func (s srcInfo) writec(column func(ipe.File) string, sep string, size int, conds ...bool) {
+	s.buffer.WriteString(fmtColumn(column(s.file), sep, size, conds...))
+}
 
-	if *colorFlag != colorAuto {
-		color.NoColor = *colorFlag == colorNever
+func (s srcInfo) write(str string) {
+	s.buffer.WriteString(str)
+}
+
+func main() {
+	args := parseArgs()
+
+	if args.color != colorAuto {
+		color.NoColor = args.color == colorNever
 	}
 
-	if *acrossFlag {
+	if args.across {
 		direction = gridt.LeftToRight
 	} else {
 		direction = gridt.TopToBottom
 	}
 
-	gridView = !*longFlag && !*treeFlag
+	gridView = !args.long && !args.tree
+	treeView = !args.long && args.tree
+	longView = args.long && !args.tree
+	longTreeView = args.long && args.tree
+
 	srcs = make([]srcInfo, 0)
 	width, _, err := trena.Size()
 	if err != nil {
 		endWithErr(err.Error())
 	}
 
-	for _, src := range *sourceArg {
+	for _, src := range args.source {
 		src = fixSrc(src)
 		f, err := ipe.Read(src)
 		if err != nil {
 			endWithErr(err.Error())
 		}
-		printDir(src, f, []bool{})
+		printDir(src, f, []bool{}, args)
 	}
 
-	if *treeFlag {
+	if args.tree {
 		os.Stdout.WriteString(outBuffer.String())
 	} else {
 		writeNames := len(srcs) > 1
@@ -102,7 +91,7 @@ func main() {
 			}
 			if gridView {
 				g, ok := src.grid.FitIntoWidth(width)
-				if !ok || *oneLine {
+				if !ok || args.oneLine {
 					for _, cell := range src.grid.Cells() {
 						os.Stdout.WriteString(cell)
 						os.Stdout.WriteString("\n")
@@ -120,79 +109,74 @@ func main() {
 	}
 }
 
-func printDir(src string, file ipe.File, corners []bool) {
-	if !file.IsDir() {
-		return
-	}
+func printDir(src string, file ipe.File, corners []bool, args argsInfo) {
 	fs := file.Children()
 	if fs == nil || len(fs) == 0 {
 		return
 	}
 
-	var buffer bytes.Buffer
-	grid := gridt.New(direction, *separatorFlag)
-	srcs = append(srcs, srcInfo{file, grid, &buffer})
+	var buffer *bytes.Buffer
+	if args.tree {
+		buffer = &outBuffer
+	} else {
+		buffer = bytes.NewBuffer([]byte{})
+	}
+	grid := gridt.New(direction, args.separator)
+	srcs = append(srcs, srcInfo{file, grid, buffer})
 
-	if *reverseFlag {
+	if args.reverse {
 		reverse(fs)
 	}
 
 	// First loop: preparation.
 	for _, f := range fs {
-		checkBiggestValues(f, *allFlag, *ignoreFlag, *filterFlag)
+		checkBiggestValues(f, args)
 	}
 
 	// Second loop: printing.
 	for ii, f := range fs {
-		printFile(srcInfo{f, grid, &buffer}, append(corners, ii+1 == len(fs)))
+		printFile(srcInfo{f, grid, buffer}, append(corners, ii+1 == len(fs)), args)
 	}
 }
 
-func printFile(src srcInfo, corners []bool) {
-	if !show(src.file, *allFlag, *ignoreFlag, *filterFlag) {
+func printFile(src srcInfo, corners []bool, args argsInfo) {
+	if !show(src.file, args) {
 		return
 	}
 
 	var name string
-	if *classifyFlag {
+	if args.classify {
 		name = src.file.ClassifiedName()
 	} else {
 		name = src.file.Name()
 	}
 
-	var buffer *bytes.Buffer
-	if *treeFlag {
-		buffer = &outBuffer
-	} else {
-		buffer = src.buffer
-	}
-
 	if !gridView {
-		if *longFlag {
-			if *inodeFlag {
-				buffer.WriteString(fmtColumn(fmtInode(src.file), *separatorFlag, bgstInode, !osWindows))
+		if args.long {
+			if args.inode {
+				src.writec(fmtInode, args.separator, bgstInode, !osWindows)
 			}
-			buffer.WriteString(fmtColumn(fmtMode(src.file), *separatorFlag, bgstMode))
-			buffer.WriteString(fmtColumn(fmtSize(src.file), *separatorFlag, bgstSize))
-			buffer.WriteString(fmtColumn(fmtTime(src.file), *separatorFlag, 0))
-			buffer.WriteString(fmtColumn(fmtUser(src.file), *separatorFlag, bgstUser, !osWindows))
+			src.writec(fmtMode, args.separator, bgstMode)
+			src.writec(fmtSize, args.separator, bgstSize)
+			src.writec(fmtTime, args.separator, 0)
+			src.writec(fmtUser, args.separator, bgstUser, !osWindows)
 		}
-		if *treeFlag {
-			buffer.WriteString(makeTree(corners))
+		if args.tree {
+			src.write(makeTree(corners))
 		}
-		buffer.WriteString(name)
-		buffer.WriteString("\n")
+		src.write(name)
+		src.write("\n")
 	} else {
 		src.grid.Add(name)
 	}
 
-	if *recursiveFlag && src.file.IsDir() && (*depthFlag == 0 || *depthFlag >= len(corners)) {
-		printDir(src.file.Name(), src.file, corners)
+	if args.recursive && src.file.IsDir() && (args.depth == 0 || args.depth >= len(corners)) {
+		printDir(src.file.Name(), src.file, corners, args)
 	}
 }
 
-func checkBiggestValues(f ipe.File, all bool, ignore, filter *regexp.Regexp) {
-	if !show(f, all, ignore, filter) {
+func checkBiggestValues(f ipe.File, args argsInfo) {
+	if !show(f, args) {
 		return
 	}
 	if m := len(fmtMode(f)); m > bgstMode {
@@ -207,17 +191,17 @@ func checkBiggestValues(f ipe.File, all bool, ignore, filter *regexp.Regexp) {
 	if i := len(fmtInode(f)); i > bgstInode {
 		bgstInode = i
 	}
-	if *recursiveFlag {
+	if args.recursive {
 		for _, ff := range f.Children() {
-			checkBiggestValues(ff, all, ignore, filter)
+			checkBiggestValues(ff, args)
 		}
 	}
 }
 
-func show(f ipe.File, all bool, ignore, filter *regexp.Regexp) bool {
-	return (all || !f.IsDotfile()) &&
-		(ignore == nil || !ignore.MatchString(f.Name())) &&
-		(filter == nil || filter.MatchString(f.Name()))
+func show(f ipe.File, args argsInfo) bool {
+	return (args.all || !f.IsDotfile()) &&
+		(args.ignore == nil || !args.ignore.MatchString(f.Name())) &&
+		(args.filter == nil || args.filter.MatchString(f.Name()))
 }
 
 func fmtColumn(column, sep string, size int, conds ...bool) string {
