@@ -287,10 +287,10 @@ func reverse(a []ipe.File) {
 }
 
 func endWithErr(err string) {
-	os.Stdout.WriteString(os.Args[0])
-	os.Stdout.WriteString(" error: ")
-	os.Stdout.WriteString(err)
-	os.Stdout.WriteString("\n")
+	os.Stderr.WriteString(os.Args[0])
+	os.Stderr.WriteString(" error: ")
+	os.Stderr.WriteString(err)
+	os.Stderr.WriteString("\n")
 	os.Exit(1)
 }
 
