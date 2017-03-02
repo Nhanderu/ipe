@@ -139,8 +139,6 @@ func printDir(src string, file ipe.File, corners []bool) {
 
 	// Second loop: printing.
 	for ii, f := range fs {
-		println(ii + 1)
-		println(len(fs))
 		printFile(srcInfo{f, grid, &buffer}, append(corners, ii+1 == len(fs)))
 	}
 }
