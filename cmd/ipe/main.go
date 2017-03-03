@@ -13,6 +13,7 @@ import (
 	"github.com/Nhanderu/ipe"
 	"github.com/Nhanderu/trena"
 	"github.com/Nhanderu/tuyo/text"
+	"github.com/alecthomas/kingpin"
 	"github.com/fatih/color"
 )
 
@@ -50,28 +51,28 @@ func (s srcInfo) write(str string) {
 func main() {
 	args := parseArgs()
 
-	if args.color != colorAuto {
-		color.NoColor = args.color == colorNever
+	if args.Color != ipe.ArgColorAuto {
+		color.NoColor = args.Color == ipe.ArgColorNever
 	}
 
-	if args.across {
+	if args.Across {
 		direction = gridt.LeftToRight
 	} else {
 		direction = gridt.TopToBottom
 	}
 
-	gridView = !args.long && !args.tree
-	treeView = !args.long && args.tree
-	longView = args.long && !args.tree
-	longTreeView = args.long && args.tree
+	gridView = !args.Long && !args.Tree
+	treeView = !args.Long && args.Tree
+	longView = args.Long && !args.Tree
+	longTreeView = args.Long && args.Tree
 
-	srcs = make([]srcInfo, 0)
 	width, _, err := trena.Size()
 	if err != nil {
 		endWithErr(err.Error())
 	}
 
-	for _, src := range args.source {
+	srcs = make([]srcInfo, 0)
+	for _, src := range args.Source {
 		src = fixSrc(src)
 		f, err := ipe.Read(src)
 		if err != nil {
@@ -80,7 +81,7 @@ func main() {
 		printDir(src, f, []bool{}, args)
 	}
 
-	if args.tree {
+	if args.Tree {
 		os.Stdout.WriteString(outBuffer.String())
 	} else {
 		writeNames := len(srcs) > 1
@@ -91,7 +92,7 @@ func main() {
 			}
 			if gridView {
 				g, ok := src.grid.FitIntoWidth(width)
-				if !ok || args.oneLine {
+				if !ok || args.OneLine {
 					for _, cell := range src.grid.Cells() {
 						os.Stdout.WriteString(cell)
 						os.Stdout.WriteString("\n")
@@ -109,22 +110,43 @@ func main() {
 	}
 }
 
-func printDir(src string, file ipe.File, corners []bool, args argsInfo) {
+func parseArgs() ipe.ArgsInfo {
+	var args ipe.ArgsInfo
+	kingpin.Arg("source", "the directory to list contents").Default(".").StringsVar(&args.Source)
+	kingpin.Flag("separator", "separator of the columns").Short('S').Default("  ").StringVar(&args.Separator)
+	kingpin.Flag("across", "writes the entries by lines instead of by columns").Short('x').BoolVar(&args.Across)
+	kingpin.Flag("all", "do not hide entries starting with .").Short('a').BoolVar(&args.All)
+	kingpin.Flag("color", "control whether color is used to distinguish file types").Default(ipe.ArgColorAuto).EnumVar(&args.Color, ipe.ArgColorNever, ipe.ArgColorAlways, ipe.ArgColorAuto)
+	kingpin.Flag("classify", "append indicator to the entries").Short('F').BoolVar(&args.Classify)
+	kingpin.Flag("depth", "maximum depth of recursion").Short('D').IntVar(&args.Depth)
+	kingpin.Flag("filter", "only show entries that matches the pattern").Short('f').RegexpVar(&args.Filter)
+	kingpin.Flag("ignore", "do not show entries that matches the pattern").Short('I').RegexpVar(&args.Ignore)
+	kingpin.Flag("inode", "show entry inode").Short('i').BoolVar(&args.Inode)
+	kingpin.Flag("long", "show entries in the \"long view\"").Short('l').BoolVar(&args.Long)
+	kingpin.Flag("one-line", "show one entry per line").Short('1').BoolVar(&args.OneLine)
+	kingpin.Flag("reverse", "reverse order of entries").Short('r').BoolVar(&args.Reverse)
+	kingpin.Flag("recursive", "list subdirectories recursively").Short('R').BoolVar(&args.Recursive)
+	kingpin.Flag("tree", "shows the entries in the tree view").Short('t').BoolVar(&args.Tree)
+	kingpin.Parse()
+	return args
+}
+
+func printDir(src string, file ipe.File, corners []bool, args ipe.ArgsInfo) {
 	fs := file.Children()
 	if fs == nil || len(fs) == 0 {
 		return
 	}
 
 	var buffer *bytes.Buffer
-	if args.tree {
+	if args.Tree {
 		buffer = &outBuffer
 	} else {
 		buffer = bytes.NewBuffer([]byte{})
 	}
-	grid := gridt.New(direction, args.separator)
+	grid := gridt.New(direction, args.Separator)
 	srcs = append(srcs, srcInfo{file, grid, buffer})
 
-	if args.reverse {
+	if args.Reverse {
 		reverse(fs)
 	}
 
@@ -139,44 +161,8 @@ func printDir(src string, file ipe.File, corners []bool, args argsInfo) {
 	}
 }
 
-func printFile(src srcInfo, corners []bool, args argsInfo) {
-	if !show(src.file, args) {
-		return
-	}
-
-	var name string
-	if args.classify {
-		name = src.file.ClassifiedName()
-	} else {
-		name = src.file.Name()
-	}
-
-	if !gridView {
-		if args.long {
-			if args.inode {
-				src.writec(fmtInode, args.separator, bgstInode, !osWindows)
-			}
-			src.writec(fmtMode, args.separator, bgstMode)
-			src.writec(fmtSize, args.separator, bgstSize)
-			src.writec(fmtTime, args.separator, 0)
-			src.writec(fmtUser, args.separator, bgstUser, !osWindows)
-		}
-		if args.tree {
-			src.write(makeTree(corners))
-		}
-		src.write(name)
-		src.write("\n")
-	} else {
-		src.grid.Add(name)
-	}
-
-	if args.recursive && src.file.IsDir() && (args.depth == 0 || args.depth >= len(corners)) {
-		printDir(src.file.Name(), src.file, corners, args)
-	}
-}
-
-func checkBiggestValues(f ipe.File, args argsInfo) {
-	if !show(f, args) {
+func checkBiggestValues(f ipe.File, args ipe.ArgsInfo) {
+	if !shouldShow(f, args) {
 		return
 	}
 	if m := len(fmtMode(f)); m > bgstMode {
@@ -191,17 +177,51 @@ func checkBiggestValues(f ipe.File, args argsInfo) {
 	if i := len(fmtInode(f)); i > bgstInode {
 		bgstInode = i
 	}
-	if args.recursive {
+	if args.Recursive {
 		for _, ff := range f.Children() {
 			checkBiggestValues(ff, args)
 		}
 	}
 }
 
-func show(f ipe.File, args argsInfo) bool {
-	return (args.all || !f.IsDotfile()) &&
-		(args.ignore == nil || !args.ignore.MatchString(f.Name())) &&
-		(args.filter == nil || args.filter.MatchString(f.Name()))
+func printFile(src srcInfo, corners []bool, args ipe.ArgsInfo) {
+	if !shouldShow(src.file, args) {
+		return
+	}
+
+	var name string
+	if args.Classify {
+		name = src.file.ClassifiedName()
+	} else {
+		name = src.file.Name()
+	}
+
+	if !gridView {
+		src.grid.Add(name)
+	} else {
+		if args.Long {
+			src.writec(fmtInode, args.Separator, bgstInode, args.Inode, !osWindows)
+			src.writec(fmtMode, args.Separator, bgstMode)
+			src.writec(fmtSize, args.Separator, bgstSize)
+			src.writec(fmtTime, args.Separator, 0)
+			src.writec(fmtUser, args.Separator, bgstUser, !osWindows)
+		}
+		if args.Tree {
+			src.write(makeTree(corners))
+		}
+		src.write(name)
+		src.write("\n")
+	}
+
+	if args.Recursive && src.file.IsDir() && (args.Depth == 0 || args.Depth >= len(corners)) {
+		printDir(src.file.Name(), src.file, corners, args)
+	}
+}
+
+func shouldShow(f ipe.File, args ipe.ArgsInfo) bool {
+	return (args.All || !f.IsDotfile()) &&
+		(args.Ignore == nil || !args.Ignore.MatchString(f.Name())) &&
+		(args.Filter == nil || args.Filter.MatchString(f.Name()))
 }
 
 func fmtColumn(column, sep string, size int, conds ...bool) string {
