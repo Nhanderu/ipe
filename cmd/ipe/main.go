@@ -9,10 +9,7 @@ import (
 )
 
 func main() {
-	a := parseArgs()
-	s := ipe.NewFormatter(a)
-	ss := s.String()
-	os.Stdout.WriteString(ss)
+	os.Stdout.WriteString(ipe.NewFormatter(parseArgs()).String())
 }
 
 func parseArgs() ipe.ArgsInfo {
