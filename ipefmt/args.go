@@ -1,4 +1,4 @@
-package ipe
+package ipefmt
 
 import "regexp"
 

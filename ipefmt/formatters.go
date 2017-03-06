@@ -1,4 +1,4 @@
-package ipe
+package ipefmt
 
 import (
 	"bytes"
@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Nhanderu/gridt"
+	"github.com/Nhanderu/ipe"
 	"github.com/Nhanderu/tuyo/text"
 	"github.com/fatih/color"
 )
@@ -28,13 +29,13 @@ var (
 )
 
 type srcInfoBuffer struct {
-	file   File
+	file   ipe.File
 	err    error
 	buffer *bytes.Buffer
 }
 
 type srcInfoGrid struct {
-	file File
+	file ipe.File
 	err  error
 	grid *gridt.Grid
 }
@@ -58,23 +59,23 @@ func NewFormatter(args ArgsInfo) fmt.Stringer {
 
 // Grid!
 
-type GridFormatter struct {
+type gridFormatter struct {
 	srcs      []srcInfoGrid
 	direction gridt.Direction
 	width     int
 	oneLine   bool
 }
 
-func newGridFormatter(args ArgsInfo) *GridFormatter {
+func newGridFormatter(args ArgsInfo) *gridFormatter {
 	var direction gridt.Direction
 	if args.Across {
 		direction = gridt.LeftToRight
 	} else {
 		direction = gridt.TopToBottom
 	}
-	f := &GridFormatter{make([]srcInfoGrid, 0), direction, args.Width, args.OneLine}
+	f := &gridFormatter{make([]srcInfoGrid, 0), direction, args.Width, args.OneLine}
 	for _, src := range args.Sources {
-		file, err := Read(fixInSrc(src))
+		file, err := ipe.Read(fixInSrc(src))
 		if err != nil {
 			f.srcs = append(f.srcs, srcInfoGrid{file, err, nil})
 		} else {
@@ -84,7 +85,7 @@ func newGridFormatter(args ArgsInfo) *GridFormatter {
 	return f
 }
 
-func (f *GridFormatter) getDir(file File, args ArgsInfo, depth uint8) {
+func (f *gridFormatter) getDir(file ipe.File, args ArgsInfo, depth uint8) {
 	fs := file.Children()
 	if fs == nil || len(fs) == 0 {
 		return
@@ -108,7 +109,7 @@ func (f *GridFormatter) getDir(file File, args ArgsInfo, depth uint8) {
 	}
 }
 
-func (f *GridFormatter) getFile(file File, grid *gridt.Grid, args ArgsInfo, depth uint8) {
+func (f *gridFormatter) getFile(file ipe.File, grid *gridt.Grid, args ArgsInfo, depth uint8) {
 	if !shouldShow(file, args) {
 		return
 	}
@@ -124,7 +125,7 @@ func (f *GridFormatter) getFile(file File, grid *gridt.Grid, args ArgsInfo, dept
 	}
 }
 
-func (f *GridFormatter) String() string {
+func (f *gridFormatter) String() string {
 	var buffer bytes.Buffer
 	writeNames := len(f.srcs) > 1
 	for _, src := range f.srcs {
@@ -155,14 +156,14 @@ func (f *GridFormatter) String() string {
 
 // Tree!
 
-type TreeFormatter struct {
+type treeFormatter struct {
 	srcs []srcInfoBuffer
 }
 
-func newTreeFormatter(args ArgsInfo) *TreeFormatter {
-	f := &TreeFormatter{make([]srcInfoBuffer, 0)}
+func newTreeFormatter(args ArgsInfo) *treeFormatter {
+	f := &treeFormatter{make([]srcInfoBuffer, 0)}
 	for _, src := range args.Sources {
-		file, err := Read(fixInSrc(src))
+		file, err := ipe.Read(fixInSrc(src))
 		if err != nil {
 			f.srcs = append(f.srcs, srcInfoBuffer{file, err, nil})
 		} else {
@@ -172,7 +173,7 @@ func newTreeFormatter(args ArgsInfo) *TreeFormatter {
 	return f
 }
 
-func (f *TreeFormatter) getDir(file File, buffer *bytes.Buffer, args ArgsInfo, corners []bool) {
+func (f *treeFormatter) getDir(file ipe.File, buffer *bytes.Buffer, args ArgsInfo, corners []bool) {
 	fs := file.Children()
 	if fs == nil || len(fs) == 0 {
 		return
@@ -197,7 +198,7 @@ func (f *TreeFormatter) getDir(file File, buffer *bytes.Buffer, args ArgsInfo, c
 	}
 }
 
-func (f *TreeFormatter) getFile(file File, buffer *bytes.Buffer, args ArgsInfo, corners []bool) {
+func (f *treeFormatter) getFile(file ipe.File, buffer *bytes.Buffer, args ArgsInfo, corners []bool) {
 	if !shouldShow(file, args) {
 		return
 	}
@@ -215,7 +216,7 @@ func (f *TreeFormatter) getFile(file File, buffer *bytes.Buffer, args ArgsInfo, 
 	}
 }
 
-func (f *TreeFormatter) String() string {
+func (f *treeFormatter) String() string {
 	var buffer bytes.Buffer
 	writeNames := len(f.srcs) > 1
 	for _, src := range f.srcs {
@@ -238,14 +239,14 @@ func (f *TreeFormatter) String() string {
 
 // Long!
 
-type LongFormatter struct {
+type longFormatter struct {
 	srcs []srcInfoBuffer
 }
 
-func newLongFormatter(args ArgsInfo) *LongFormatter {
-	f := &LongFormatter{make([]srcInfoBuffer, 0)}
+func newLongFormatter(args ArgsInfo) *longFormatter {
+	f := &longFormatter{make([]srcInfoBuffer, 0)}
 	for _, src := range args.Sources {
-		file, err := Read(fixInSrc(src))
+		file, err := ipe.Read(fixInSrc(src))
 		if err != nil {
 			f.srcs = append(f.srcs, srcInfoBuffer{file, err, nil})
 		} else {
@@ -255,7 +256,7 @@ func newLongFormatter(args ArgsInfo) *LongFormatter {
 	return f
 }
 
-func (f *LongFormatter) getDir(file File, args ArgsInfo, depth uint8) {
+func (f *longFormatter) getDir(file ipe.File, args ArgsInfo, depth uint8) {
 	fs := file.Children()
 	if fs == nil || len(fs) == 0 {
 		return
@@ -279,7 +280,7 @@ func (f *LongFormatter) getDir(file File, args ArgsInfo, depth uint8) {
 	}
 }
 
-func (f *LongFormatter) getFile(file File, buffer *bytes.Buffer, args ArgsInfo, depth uint8) {
+func (f *longFormatter) getFile(file ipe.File, buffer *bytes.Buffer, args ArgsInfo, depth uint8) {
 	if !shouldShow(file, args) {
 		return
 	}
@@ -305,7 +306,7 @@ func (f *LongFormatter) getFile(file File, buffer *bytes.Buffer, args ArgsInfo, 
 	}
 }
 
-func (f *LongFormatter) String() string {
+func (f *longFormatter) String() string {
 	var buffer bytes.Buffer
 	writeNames := len(f.srcs) > 1
 	for _, src := range f.srcs {
@@ -328,14 +329,14 @@ func (f *LongFormatter) String() string {
 
 // Long Tree!
 
-type LongTreeFormatter struct {
+type longTreeFormatter struct {
 	srcs []srcInfoBuffer
 }
 
-func newLongTreeFormatter(args ArgsInfo) *LongTreeFormatter {
-	f := &LongTreeFormatter{make([]srcInfoBuffer, 0)}
+func newLongTreeFormatter(args ArgsInfo) *longTreeFormatter {
+	f := &longTreeFormatter{make([]srcInfoBuffer, 0)}
 	for _, src := range args.Sources {
-		file, err := Read(fixInSrc(src))
+		file, err := ipe.Read(fixInSrc(src))
 		if err != nil {
 			f.srcs = append(f.srcs, srcInfoBuffer{file, err, nil})
 		} else {
@@ -345,7 +346,7 @@ func newLongTreeFormatter(args ArgsInfo) *LongTreeFormatter {
 	return f
 }
 
-func (f *LongTreeFormatter) getDir(file File, buffer *bytes.Buffer, args ArgsInfo, corners []bool) {
+func (f *longTreeFormatter) getDir(file ipe.File, buffer *bytes.Buffer, args ArgsInfo, corners []bool) {
 	fs := file.Children()
 	if fs == nil || len(fs) == 0 {
 		return
@@ -370,7 +371,7 @@ func (f *LongTreeFormatter) getDir(file File, buffer *bytes.Buffer, args ArgsInf
 	}
 }
 
-func (f *LongTreeFormatter) getFile(file File, buffer *bytes.Buffer, args ArgsInfo, corners []bool) {
+func (f *longTreeFormatter) getFile(file ipe.File, buffer *bytes.Buffer, args ArgsInfo, corners []bool) {
 	if !shouldShow(file, args) {
 		return
 	}
@@ -397,7 +398,7 @@ func (f *LongTreeFormatter) getFile(file File, buffer *bytes.Buffer, args ArgsIn
 	}
 }
 
-func (f *LongTreeFormatter) String() string {
+func (f *longTreeFormatter) String() string {
 	var buffer bytes.Buffer
 	writeNames := len(f.srcs) > 1
 	for _, src := range f.srcs {
@@ -420,7 +421,7 @@ func (f *LongTreeFormatter) String() string {
 
 // Helpers.
 
-func checkBiggestValues(f File, args ArgsInfo) {
+func checkBiggestValues(f ipe.File, args ArgsInfo) {
 	if !shouldShow(f, args) {
 		return
 	}
@@ -443,7 +444,7 @@ func checkBiggestValues(f File, args ArgsInfo) {
 	}
 }
 
-func shouldShow(f File, args ArgsInfo) bool {
+func shouldShow(f ipe.File, args ArgsInfo) bool {
 	return (args.All || !f.IsDotfile()) &&
 		(args.Ignore == nil || !args.Ignore.MatchString(f.Name())) &&
 		(args.Filter == nil || args.Filter.MatchString(f.Name()))
@@ -456,15 +457,15 @@ func fmtColumn(column, sep string, size int) string {
 	return buf.String()
 }
 
-func fmtInode(f File) string {
+func fmtInode(f ipe.File) string {
 	return strconv.FormatUint(f.Inode(), 10)
 }
 
-func fmtMode(f File) string {
+func fmtMode(f ipe.File) string {
 	return f.Mode().String()
 }
 
-func fmtSize(f File) string {
+func fmtSize(f ipe.File) string {
 	if !f.IsRegular() {
 		return "-"
 	}
@@ -484,7 +485,7 @@ func fmtSize(f File) string {
 	return fmt.Sprintf("%.1dTB", s/terabyte)
 }
 
-func fmtTime(f File) string {
+func fmtTime(f ipe.File) string {
 	t := f.ModTime()
 	year, month, day := t.Date()
 	str := fmt.Sprintf("%2d %s ", day, month.String()[:3])
@@ -494,7 +495,7 @@ func fmtTime(f File) string {
 	return fmt.Sprintf("%s%d ", str, year)
 }
 
-func fmtUser(f File) string {
+func fmtUser(f ipe.File) string {
 	if osWindows {
 		return ""
 	}
@@ -508,7 +509,7 @@ func fixInSrc(src string) string {
 	return src
 }
 
-func reverse(a []File) {
+func reverse(a []ipe.File) {
 	for l, r := 0, len(a)-1; l < r; l, r = l+1, r-1 {
 		a[l], a[r] = a[r], a[l]
 	}
