@@ -13,7 +13,7 @@ type ArgsInfo struct {
 	All       bool
 	Color     string
 	Classify  bool
-	Depth     int
+	Depth     uint8
 	Filter    *regexp.Regexp
 	Ignore    *regexp.Regexp
 	Inode     bool
@@ -22,7 +22,7 @@ type ArgsInfo struct {
 	Reverse   bool
 	Recursive bool
 	Separator string
-	Source    []string
+	Sources   []string
 	Tree      bool
 	Width     int
 }
