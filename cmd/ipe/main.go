@@ -63,6 +63,10 @@ func parseArgs() (ipefmt.ArgsInfo, error) {
 	Flag("recursive", "list subdirectories recursively").
 		Short('R').
 		BoolVar(&args.Recursive)
+	Flag("time", "define which timestamps to show").
+		Short('T').
+		Default(ipefmt.ArgTimeMod).
+		EnumsVar(&args.Time, ipefmt.ArgTimeAcc, ipefmt.ArgTimeMod, ipefmt.ArgTimeCrt)
 	Flag("tree", "shows the entries in the tree view").
 		Short('t').
 		BoolVar(&args.Tree)

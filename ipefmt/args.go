@@ -6,6 +6,10 @@ const (
 	ArgColorNever  = "never"
 	ArgColorAlways = "always"
 	ArgColorAuto   = "auto"
+
+	ArgTimeAcc = "accessed"
+	ArgTimeMod = "modified"
+	ArgTimeCrt = "created"
 )
 
 type ArgsInfo struct {
@@ -23,6 +27,7 @@ type ArgsInfo struct {
 	Recursive bool
 	Separator string
 	Sources   []string
+	Time      []string
 	Tree      bool
 	Width     int
 }
