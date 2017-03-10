@@ -8,10 +8,8 @@ import (
 )
 
 type gridFormatter struct {
-	srcs      []srcInfoGrid
+	commonFormatter
 	direction gridt.Direction
-	width     int
-	oneLine   bool
 }
 
 func newGridFormatter(args ArgsInfo) *gridFormatter {
@@ -21,59 +19,49 @@ func newGridFormatter(args ArgsInfo) *gridFormatter {
 	} else {
 		direction = gridt.TopToBottom
 	}
-	f := &gridFormatter{make([]srcInfoGrid, 0), direction, args.Width, args.OneLine}
+	f := &gridFormatter{commonFormatter{args, make([]srcInfo, 0), 0}, direction}
 	for _, src := range args.Sources {
 		file, err := ipe.Read(fixInSrc(src))
 		if err != nil {
-			f.srcs = append(f.srcs, srcInfoGrid{file, err, nil})
+			f.srcs = append(f.srcs, srcInfo{file, err, nil})
 		} else {
-			f.getDir(file, args, 0)
+			f.getDir(file, 0)
 		}
 	}
 	return f
 }
 
-func (f *gridFormatter) getDir(file ipe.File, args ArgsInfo, depth uint8) {
+func (f *gridFormatter) getDir(file ipe.File, depth uint8) {
 	fs := file.Children()
 	if fs == nil || len(fs) == 0 {
 		return
 	}
 
-	grid := gridt.New(f.direction, args.Separator)
-	f.srcs = append(f.srcs, srcInfoGrid{file, nil, grid})
+	grid := gridt.New(f.direction, f.args.Separator)
+	f.srcs = append(f.srcs, srcInfo{file, nil, grid})
 
-	if args.Reverse {
+	if f.args.Reverse {
 		reverse(fs)
 	}
 
-	// First loop: preparation.
 	for _, file := range fs {
-		checkBiggestValues(file, args)
-	}
-
-	// Second loop: printing.
-	for _, file := range fs {
-		f.getFile(file, grid, args, depth+1)
+		f.getFile(file, grid, depth+1)
 	}
 }
 
-func (f *gridFormatter) getFile(file ipe.File, grid *gridt.Grid, args ArgsInfo, depth uint8) {
-	if !shouldShow(file, args) {
+func (f *gridFormatter) getFile(file ipe.File, grid *gridt.Grid, depth uint8) {
+	if !shouldShow(file, f.args) {
 		return
 	}
 
-	if args.Classify {
-		grid.Add(file.ClassifiedName())
-	} else {
-		grid.Add(file.Name())
-	}
+	grid.Add(f.getName(file))
 
-	if args.Recursive && file.IsDir() && (args.Depth == 0 || args.Depth >= depth) {
-		f.getDir(file, args, depth)
+	if f.args.Recursive && file.IsDir() && (f.args.Depth == 0 || f.args.Depth >= depth) {
+		f.getDir(file, depth)
 	}
 }
 
-func (f *gridFormatter) String() string {
+func (f gridFormatter) String() string {
 	var buffer bytes.Buffer
 	writeNames := len(f.srcs) > 1
 	for _, src := range f.srcs {
@@ -85,8 +73,8 @@ func (f *gridFormatter) String() string {
 			buffer.WriteString("Error: ")
 			buffer.WriteString(src.err.Error())
 		} else {
-			d, ok := src.grid.FitIntoWidth(f.width)
-			if !ok || f.oneLine {
+			d, ok := src.grid.FitIntoWidth(f.args.Width)
+			if !ok || f.args.OneLine {
 				for _, cell := range src.grid.Cells() {
 					buffer.WriteString(cell)
 					buffer.WriteString("\n")

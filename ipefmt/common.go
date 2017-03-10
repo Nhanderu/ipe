@@ -11,7 +11,6 @@ import (
 
 	"github.com/Nhanderu/gridt"
 	"github.com/Nhanderu/ipe"
-	"github.com/Nhanderu/tuyo/text"
 	"github.com/fatih/color"
 )
 
@@ -24,20 +23,58 @@ const (
 	osWindows = runtime.GOOS == "windows"
 )
 
-var (
-	bgstMode, bgstSize, bgstUser, bgstAccTime, bgstModTime, bgstCrtTime, bgstInode int
-)
-
-type srcInfoBuffer struct {
-	file   ipe.File
-	err    error
-	buffer *bytes.Buffer
-}
-
-type srcInfoGrid struct {
+type srcInfo struct {
 	file ipe.File
 	err  error
 	grid *gridt.Grid
+}
+
+type commonFormatter struct {
+	args ArgsInfo
+	srcs []srcInfo
+	cols int
+}
+
+func (f commonFormatter) getName(file ipe.File) string {
+	if f.args.Classify {
+		return file.ClassifiedName()
+	}
+	return file.Name()
+}
+
+func (f commonFormatter) String() string {
+	var buffer bytes.Buffer
+	writeNames := len(f.srcs) > 1
+	for _, src := range f.srcs {
+		if writeNames {
+			buffer.WriteString(src.file.FullName())
+			buffer.WriteString("\n")
+		}
+		if src.err != nil {
+			buffer.WriteString("Error: ")
+			buffer.WriteString(src.err.Error())
+		} else {
+			var d gridt.Dimensions
+			var ok bool
+			if f.cols > 0 {
+				d, ok = src.grid.FitIntoColumns(f.cols)
+			} else {
+				d, ok = src.grid.FitIntoWidth(f.args.Width)
+			}
+			if !ok || f.args.OneLine {
+				for _, cell := range src.grid.Cells() {
+					buffer.WriteString(cell)
+					buffer.WriteString("\n")
+				}
+			} else {
+				buffer.WriteString(d.String())
+			}
+		}
+		if writeNames {
+			buffer.WriteString("\n")
+		}
+	}
+	return buffer.String()
 }
 
 // NewFormatter returns the correct formatter, based on the arguments.
@@ -58,40 +95,10 @@ func NewFormatter(args ArgsInfo) fmt.Stringer {
 	return newGridFormatter(args)
 }
 
-func checkBiggestValues(f ipe.File, args ArgsInfo) {
-	if !shouldShow(f, args) {
-		return
-	}
-	if m := len(fmtMode(f)); m > bgstMode {
-		bgstMode = m
-	}
-	if s := len(fmtSize(f)); s > bgstSize {
-		bgstSize = s
-	}
-	if u := len(fmtUser(f)); u > bgstUser {
-		bgstUser = u
-	}
-	if i := len(fmtInode(f)); i > bgstInode {
-		bgstInode = i
-	}
-	if args.Recursive {
-		for _, ff := range f.Children() {
-			checkBiggestValues(ff, args)
-		}
-	}
-}
-
 func shouldShow(f ipe.File, args ArgsInfo) bool {
 	return (args.All || !f.IsDotfile()) &&
 		(args.Ignore == nil || !args.Ignore.MatchString(f.Name())) &&
 		(args.Filter == nil || args.Filter.MatchString(f.Name()))
-}
-
-func fmtColumn(column, sep string, size int) string {
-	var buf bytes.Buffer
-	buf.WriteString(text.PadLeft(column, " ", size))
-	buf.WriteString(sep)
-	return buf.String()
 }
 
 func fmtInode(f ipe.File) string {

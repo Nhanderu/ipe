@@ -1,104 +1,89 @@
 package ipefmt
 
 import (
-	"bytes"
-
+	"github.com/Nhanderu/gridt"
 	"github.com/Nhanderu/ipe"
 )
 
 type longFormatter struct {
-	srcs []srcInfoBuffer
+	commonFormatter
+	showAcc bool
+	showMod bool
+	showCrt bool
 }
 
 func newLongFormatter(args ArgsInfo) *longFormatter {
-	f := &longFormatter{make([]srcInfoBuffer, 0)}
+	acc, mod, crt := timesToShow(args)
+	f := &longFormatter{commonFormatter{args, make([]srcInfo, 0), 3}, acc, mod, crt}
+	if !osWindows {
+		f.cols++
+	}
+	if f.showAcc {
+		f.cols++
+	}
+	if f.showMod {
+		f.cols++
+	}
+	if f.showCrt {
+		f.cols++
+	}
+	if !osWindows {
+		f.cols++
+		if f.args.Inode {
+			f.cols++
+		}
+	}
 	for _, src := range args.Sources {
 		file, err := ipe.Read(fixInSrc(src))
 		if err != nil {
-			f.srcs = append(f.srcs, srcInfoBuffer{file, err, nil})
+			f.srcs = append(f.srcs, srcInfo{file, err, nil})
 		} else {
-			f.getDir(file, args, 0)
+			f.getDir(file, 0)
 		}
 	}
 	return f
 }
 
-func (f *longFormatter) getDir(file ipe.File, args ArgsInfo, depth uint8) {
+func (f *longFormatter) getDir(file ipe.File, depth uint8) {
 	fs := file.Children()
 	if fs == nil || len(fs) == 0 {
 		return
 	}
-
-	buffer := bytes.NewBuffer([]byte{})
-	f.srcs = append(f.srcs, srcInfoBuffer{file, nil, buffer})
-
-	if args.Reverse {
+	grid := gridt.New(gridt.LeftToRight, f.args.Separator)
+	f.srcs = append(f.srcs, srcInfo{file, nil, grid})
+	if f.args.Reverse {
 		reverse(fs)
 	}
-
-	// First loop: preparation.
 	for _, file := range fs {
-		checkBiggestValues(file, args)
-	}
-
-	// Second loop: printing.
-	for _, file := range fs {
-		f.getFile(file, buffer, args, depth+1)
+		f.getFile(file, grid, depth+1)
 	}
 }
 
-func (f *longFormatter) getFile(file ipe.File, buffer *bytes.Buffer, args ArgsInfo, depth uint8) {
-	if !shouldShow(file, args) {
+func (f *longFormatter) getFile(file ipe.File, grid *gridt.Grid, depth uint8) {
+	if !shouldShow(file, f.args) {
 		return
 	}
 
-	acc, mod, crt := timesToShow(args)
-	if args.Inode && !osWindows {
-		buffer.WriteString(fmtColumn(fmtInode(file), args.Separator, bgstInode))
+	if f.args.Inode && !osWindows {
+		grid.Add(fmtInode(file))
 	}
-	buffer.WriteString(fmtColumn(fmtMode(file), args.Separator, bgstMode))
-	buffer.WriteString(fmtColumn(fmtSize(file), args.Separator, bgstSize))
-	if acc {
-		buffer.WriteString(fmtColumn(fmtAccTime(file), args.Separator, bgstAccTime))
+	grid.Add(fmtMode(file))
+	grid.Add(fmtSize(file))
+	if f.showAcc {
+		grid.Add(fmtAccTime(file))
 	}
-	if mod {
-		buffer.WriteString(fmtColumn(fmtModTime(file), args.Separator, bgstModTime))
+	if f.showMod {
+		grid.Add(fmtModTime(file))
 	}
-	if crt {
-		buffer.WriteString(fmtColumn(fmtCrtTime(file), args.Separator, bgstCrtTime))
+	if f.showCrt {
+		grid.Add(fmtCrtTime(file))
 	}
 	if !osWindows {
-		buffer.WriteString(fmtColumn(fmtUser(file), args.Separator, bgstUser))
+		grid.Add(fmtUser(file))
 	}
-	if args.Classify {
-		buffer.WriteString(file.ClassifiedName())
-	} else {
-		buffer.WriteString(file.Name())
-	}
-	buffer.WriteRune('\n')
+	grid.Add(f.getName(file))
 
-	if args.Recursive && file.IsDir() && (args.Depth == 0 || args.Depth >= depth) {
-		f.getDir(file, args, depth)
+	if f.args.Recursive && file.IsDir() && (f.args.Depth == 0 || f.args.Depth >= depth) {
+		f.getDir(file, depth)
 	}
-}
-
-func (f *longFormatter) String() string {
-	var buffer bytes.Buffer
-	writeNames := len(f.srcs) > 1
-	for _, src := range f.srcs {
-		if writeNames {
-			buffer.WriteString(src.file.FullName())
-			buffer.WriteString("\n")
-		}
-		if src.err != nil {
-			buffer.WriteString("Error: ")
-			buffer.WriteString(src.err.Error())
-		} else {
-			buffer.WriteString(src.buffer.String())
-		}
-		if writeNames {
-			buffer.WriteString("\n")
-		}
-	}
-	return buffer.String()
 }

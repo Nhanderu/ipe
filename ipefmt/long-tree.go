@@ -1,106 +1,90 @@
 package ipefmt
 
 import (
-	"bytes"
-
+	"github.com/Nhanderu/gridt"
 	"github.com/Nhanderu/ipe"
 )
 
 type longTreeFormatter struct {
-	srcs []srcInfoBuffer
+	commonFormatter
+	showAcc bool
+	showMod bool
+	showCrt bool
 }
 
 func newLongTreeFormatter(args ArgsInfo) *longTreeFormatter {
-	f := &longTreeFormatter{make([]srcInfoBuffer, 0)}
+	acc, mod, crt := timesToShow(args)
+	f := &longTreeFormatter{commonFormatter{args, make([]srcInfo, 0), 3}, acc, mod, crt}
+	if !osWindows {
+		f.cols++
+	}
+	if f.showAcc {
+		f.cols++
+	}
+	if f.showMod {
+		f.cols++
+	}
+	if f.showCrt {
+		f.cols++
+	}
+	if !osWindows {
+		f.cols++
+		if f.args.Inode {
+			f.cols++
+		}
+	}
 	for _, src := range args.Sources {
 		file, err := ipe.Read(fixInSrc(src))
 		if err != nil {
-			f.srcs = append(f.srcs, srcInfoBuffer{file, err, nil})
+			f.srcs = append(f.srcs, srcInfo{file, err, nil})
 		} else {
-			f.getDir(file, bytes.NewBuffer([]byte{}), args, []bool{})
+			f.getDir(file, gridt.New(gridt.LeftToRight, f.args.Separator), []bool{})
 		}
 	}
 	return f
 }
 
-func (f *longTreeFormatter) getDir(file ipe.File, buffer *bytes.Buffer, args ArgsInfo, corners []bool) {
+func (f *longTreeFormatter) getDir(file ipe.File, grid *gridt.Grid, corners []bool) {
 	fs := file.Children()
 	if fs == nil || len(fs) == 0 {
 		return
 	}
-
 	if len(corners) == 0 {
-		f.srcs = append(f.srcs, srcInfoBuffer{file, nil, buffer})
+		f.srcs = append(f.srcs, srcInfo{file, nil, grid})
 	}
-
-	if args.Reverse {
+	if f.args.Reverse {
 		reverse(fs)
 	}
-
-	// First loop: preparation.
-	for _, file := range fs {
-		checkBiggestValues(file, args)
-	}
-
-	// Second loop: printing.
 	for ii, file := range fs {
-		f.getFile(file, buffer, args, append(corners, ii+1 == len(fs)))
+		f.getFile(file, grid, append(corners, ii+1 == len(fs)))
 	}
 }
 
-func (f *longTreeFormatter) getFile(file ipe.File, buffer *bytes.Buffer, args ArgsInfo, corners []bool) {
-	if !shouldShow(file, args) {
+func (f *longTreeFormatter) getFile(file ipe.File, grid *gridt.Grid, corners []bool) {
+	if !shouldShow(file, f.args) {
 		return
 	}
 
-	acc, mod, crt := timesToShow(args)
-	if args.Inode && !osWindows {
-		buffer.WriteString(fmtColumn(fmtInode(file), args.Separator, bgstInode))
+	if f.args.Inode && !osWindows {
+		grid.Add(fmtInode(file))
 	}
-	buffer.WriteString(fmtColumn(fmtMode(file), args.Separator, bgstMode))
-	buffer.WriteString(fmtColumn(fmtSize(file), args.Separator, bgstSize))
-	if acc {
-		buffer.WriteString(fmtColumn(fmtAccTime(file), args.Separator, bgstAccTime))
+	grid.Add(fmtMode(file))
+	grid.Add(fmtSize(file))
+	if f.showAcc {
+		grid.Add(fmtAccTime(file))
 	}
-	if mod {
-		buffer.WriteString(fmtColumn(fmtModTime(file), args.Separator, bgstModTime))
+	if f.showMod {
+		grid.Add(fmtModTime(file))
 	}
-	if crt {
-		buffer.WriteString(fmtColumn(fmtCrtTime(file), args.Separator, bgstCrtTime))
+	if f.showCrt {
+		grid.Add(fmtCrtTime(file))
 	}
 	if !osWindows {
-		buffer.WriteString(fmtColumn(fmtUser(file), args.Separator, bgstUser))
+		grid.Add(fmtUser(file))
 	}
-	buffer.WriteString(makeTree(corners))
-	if args.Classify {
-		buffer.WriteString(file.ClassifiedName())
-	} else {
-		buffer.WriteString(file.Name())
-	}
-	buffer.WriteRune('\n')
+	grid.Add(makeTree(corners) + f.getName(file))
 
-	if args.Recursive && file.IsDir() && (args.Depth == 0 || int(args.Depth) >= len(corners)) {
-		f.getDir(file, buffer, args, corners)
+	if f.args.Recursive && file.IsDir() && (f.args.Depth == 0 || int(f.args.Depth) >= len(corners)) {
+		f.getDir(file, grid, corners)
 	}
-}
-
-func (f *longTreeFormatter) String() string {
-	var buffer bytes.Buffer
-	writeNames := len(f.srcs) > 1
-	for _, src := range f.srcs {
-		if writeNames {
-			buffer.WriteString(src.file.FullName())
-			buffer.WriteString("\n")
-		}
-		if src.err != nil {
-			buffer.WriteString("Error: ")
-			buffer.WriteString(src.err.Error())
-		} else {
-			buffer.WriteString(src.buffer.String())
-		}
-		if writeNames {
-			buffer.WriteString("\n")
-		}
-	}
-	return buffer.String()
 }
