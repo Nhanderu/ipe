@@ -15,9 +15,6 @@ type longTreeFormatter struct {
 func newLongTreeFormatter(args ArgsInfo) *longTreeFormatter {
 	acc, mod, crt := timesToShow(args)
 	f := &longTreeFormatter{commonFormatter{args, make([]srcInfo, 0), 3}, acc, mod, crt}
-	if !osWindows {
-		f.cols++
-	}
 	if f.showAcc {
 		f.cols++
 	}

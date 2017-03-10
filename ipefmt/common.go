@@ -42,6 +42,24 @@ func (f commonFormatter) getName(file ipe.File) string {
 	return file.Name()
 }
 
+// NewFormatter returns the correct formatter, based on the arguments.
+func NewFormatter(args ArgsInfo) fmt.Stringer {
+	if args.Color != ArgColorAuto {
+		color.NoColor = args.Color == ArgColorNever
+	}
+
+	if args.Long && args.Tree {
+		return newLongTreeFormatter(args)
+	}
+	if args.Long {
+		return newLongFormatter(args)
+	}
+	if args.Tree {
+		return newTreeFormatter(args)
+	}
+	return newGridFormatter(args)
+}
+
 func (f commonFormatter) String() string {
 	var buffer bytes.Buffer
 	writeNames := len(f.srcs) > 1
@@ -75,24 +93,6 @@ func (f commonFormatter) String() string {
 		}
 	}
 	return buffer.String()
-}
-
-// NewFormatter returns the correct formatter, based on the arguments.
-func NewFormatter(args ArgsInfo) fmt.Stringer {
-	if args.Color != ArgColorAuto {
-		color.NoColor = args.Color == ArgColorNever
-	}
-
-	if args.Long && args.Tree {
-		return newLongTreeFormatter(args)
-	}
-	if args.Long {
-		return newLongFormatter(args)
-	}
-	if args.Tree {
-		return newTreeFormatter(args)
-	}
-	return newGridFormatter(args)
 }
 
 func shouldShow(f ipe.File, args ArgsInfo) bool {
