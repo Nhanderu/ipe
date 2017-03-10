@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"runtime"
-	"strconv"
 	"strings"
 	"time"
 
@@ -101,14 +100,6 @@ func shouldShow(f ipe.File, args ArgsInfo) bool {
 		(args.Filter == nil || args.Filter.MatchString(f.Name()))
 }
 
-func fmtInode(f ipe.File) string {
-	return strconv.FormatUint(f.Inode(), 10)
-}
-
-func fmtMode(f ipe.File) string {
-	return f.Mode().String()
-}
-
 func fmtSize(f ipe.File) string {
 	if !f.IsRegular() {
 		return "-"
@@ -129,18 +120,6 @@ func fmtSize(f ipe.File) string {
 	return fmt.Sprintf("%.1dTB", s/terabyte)
 }
 
-func fmtAccTime(f ipe.File) string {
-	return fmtTime(f.AccTime())
-}
-
-func fmtModTime(f ipe.File) string {
-	return fmtTime(f.ModTime())
-}
-
-func fmtCrtTime(f ipe.File) string {
-	return fmtTime(f.CrtTime())
-}
-
 func fmtTime(t time.Time) string {
 	year, month, day := t.Date()
 	str := fmt.Sprintf("%2d %s ", day, month.String()[:3])
@@ -148,13 +127,6 @@ func fmtTime(t time.Time) string {
 		return fmt.Sprintf("%s%2d:%02d", str, t.Hour(), t.Minute())
 	}
 	return fmt.Sprintf("%s%d ", str, year)
-}
-
-func fmtUser(f ipe.File) string {
-	if osWindows {
-		return ""
-	}
-	return f.User().Username
 }
 
 func fixInSrc(src string) string {

@@ -1,8 +1,6 @@
 package ipefmt
 
 import (
-	"bytes"
-
 	"github.com/Nhanderu/gridt"
 	"github.com/Nhanderu/ipe"
 )
@@ -59,33 +57,4 @@ func (f *gridFormatter) getFile(file ipe.File, grid *gridt.Grid, depth uint8) {
 	if f.args.Recursive && file.IsDir() && (f.args.Depth == 0 || f.args.Depth >= depth) {
 		f.getDir(file, depth)
 	}
-}
-
-func (f gridFormatter) String() string {
-	var buffer bytes.Buffer
-	writeNames := len(f.srcs) > 1
-	for _, src := range f.srcs {
-		if writeNames {
-			buffer.WriteString(src.file.FullName())
-			buffer.WriteString("\n")
-		}
-		if src.err != nil {
-			buffer.WriteString("Error: ")
-			buffer.WriteString(src.err.Error())
-		} else {
-			d, ok := src.grid.FitIntoWidth(f.args.Width)
-			if !ok || f.args.OneLine {
-				for _, cell := range src.grid.Cells() {
-					buffer.WriteString(cell)
-					buffer.WriteString("\n")
-				}
-			} else {
-				buffer.WriteString(d.String())
-			}
-		}
-		if writeNames {
-			buffer.WriteString("\n")
-		}
-	}
-	return buffer.String()
 }

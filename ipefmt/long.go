@@ -1,6 +1,8 @@
 package ipefmt
 
 import (
+	"strconv"
+
 	"github.com/Nhanderu/gridt"
 	"github.com/Nhanderu/ipe"
 )
@@ -62,21 +64,21 @@ func (f *longFormatter) getFile(file ipe.File, grid *gridt.Grid, depth uint8) {
 	}
 
 	if f.args.Inode && !osWindows {
-		grid.Add(fmtInode(file))
+		grid.Add(strconv.FormatUint(file.Inode(), 10))
 	}
-	grid.Add(fmtMode(file))
+	grid.Add(file.Mode().String())
 	grid.Add(fmtSize(file))
 	if f.showAcc {
-		grid.Add(fmtAccTime(file))
+		grid.Add(fmtTime(file.AccTime()))
 	}
 	if f.showMod {
-		grid.Add(fmtModTime(file))
+		grid.Add(fmtTime(file.ModTime()))
 	}
 	if f.showCrt {
-		grid.Add(fmtCrtTime(file))
+		grid.Add(fmtTime(file.CrtTime()))
 	}
 	if !osWindows {
-		grid.Add(fmtUser(file))
+		grid.Add(file.User().Username)
 	}
 	grid.Add(f.getName(file))
 
