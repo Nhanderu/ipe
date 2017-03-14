@@ -5,13 +5,11 @@ import (
 	"fmt"
 	"os"
 	"runtime"
-	"sort"
 	"strings"
 	"time"
 
 	"github.com/Nhanderu/gridt"
 	"github.com/Nhanderu/ipe"
-	"github.com/fatih/color"
 )
 
 const (
@@ -33,31 +31,6 @@ type commonFormatter struct {
 	args ArgsInfo
 	srcs []srcInfo
 	cols int
-}
-
-func (f commonFormatter) getName(file ipe.File) string {
-	if f.args.Classify {
-		return file.ClassifiedName()
-	}
-	return file.Name()
-}
-
-// NewFormatter returns the correct formatter, based on the arguments.
-func NewFormatter(args ArgsInfo) fmt.Stringer {
-	if args.Color != ArgColorAuto {
-		color.NoColor = args.Color == ArgColorNever
-	}
-
-	if args.Long && args.Tree {
-		return newLongTreeFormatter(args)
-	}
-	if args.Long {
-		return newLongFormatter(args)
-	}
-	if args.Tree {
-		return newTreeFormatter(args)
-	}
-	return newGridFormatter(args)
 }
 
 func (f commonFormatter) String() string {
@@ -95,18 +68,32 @@ func (f commonFormatter) String() string {
 	return buffer.String()
 }
 
-func shouldShow(file ipe.File, args ArgsInfo) bool {
-	for _, f := range args.Filter {
-		if !f.MatchString(file.Name()) && !f.MatchString(file.FullName()) {
-			return false
-		}
+func (f commonFormatter) getName(file ipe.File) string {
+	if f.args.Classify {
+		return file.ClassifiedName()
 	}
-	for _, i := range args.Ignore {
-		if i.MatchString(file.Name()) || i.MatchString(file.FullName()) {
-			return false
-		}
+	return file.Name()
+}
+
+func (f *commonFormatter) appendSource(src srcInfo) {
+	f.srcs = append(f.srcs, src)
+}
+
+// NewFormatter returns the correct formatter, based on the arguments.
+func NewFormatter(args ArgsInfo) fmt.Stringer {
+	var f formatter
+	if args.Long && args.Tree {
+		f = newLongTreeFormatter(args)
+	} else if args.Long {
+		f = newLongFormatter(args)
+	} else if args.Tree {
+		f = newTreeFormatter(args)
+	} else {
+		f = newGridFormatter(args)
 	}
-	return args.All || !file.IsDotfile()
+	var w formatterWrapper
+	w.read(f, args)
+	return w
 }
 
 func fmtSize(f ipe.File) string {
@@ -143,46 +130,6 @@ func fixInSrc(src string) string {
 		return strings.Replace(src, "~", os.Getenv("USERPROFILE"), -1)
 	}
 	return src
-}
-
-func reverseFiles(a []ipe.File) {
-	for l, r := 0, len(a)-1; l < r; l, r = l+1, r-1 {
-		a[l], a[r] = a[r], a[l]
-	}
-}
-
-func sortFiles(a []ipe.File, s string) {
-	sort.Slice(a, func(i, j int) bool {
-		switch s {
-		case ArgSortInode:
-			return a[i].Inode() < a[j].Inode()
-		case ArgSortMode:
-			r := strings.NewReplacer("-", "")
-			return r.Replace(a[i].Mode().String()) < r.Replace(a[j].Mode().String())
-		case ArgSortSize:
-			return a[i].Size() < a[j].Size()
-		case ArgSortAccessed:
-			return a[i].AccTime().Unix() < a[j].AccTime().Unix()
-		case ArgSortModified:
-			return a[i].ModTime().Unix() < a[j].ModTime().Unix()
-		case ArgSortCreated:
-			return a[i].CrtTime().Unix() < a[j].CrtTime().Unix()
-		case ArgSortUser:
-			return a[i].User().Uid < a[j].User().Uid
-		case ArgSortGroup:
-			return a[i].Group().Gid < a[j].Group().Gid
-		case ArgSortName:
-			return a[i].Name() < a[j].Name()
-		default:
-			return true
-		}
-	})
-}
-
-func sortDirsFirst(a []ipe.File) {
-	sort.Slice(a, func(i, j int) bool {
-		return a[i].IsDir() || !a[j].IsDir()
-	})
 }
 
 func makeTree(corners []bool) string {

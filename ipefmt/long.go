@@ -8,7 +8,7 @@ import (
 )
 
 type longFormatter struct {
-	commonFormatter
+	*commonFormatter
 	showAcc   bool
 	showMod   bool
 	showCrt   bool
@@ -19,7 +19,7 @@ type longFormatter struct {
 
 func newLongFormatter(args ArgsInfo) *longFormatter {
 	f := &longFormatter{
-		commonFormatter{args, make([]srcInfo, 0), 3},
+		&commonFormatter{args, make([]srcInfo, 0), 0},
 		false,
 		false,
 		false,
@@ -28,51 +28,44 @@ func newLongFormatter(args ArgsInfo) *longFormatter {
 		args.Group && !osWindows,
 	}
 	f.showAcc, f.showMod, f.showCrt = timesToShow(args)
-	if f.showInode {
-		f.cols++
-	}
-	if f.showAcc {
-		f.cols++
-	}
-	if f.showMod {
-		f.cols++
-	}
-	if f.showCrt {
-		f.cols++
-	}
-	if f.showUser {
-		f.cols++
-	}
-	if f.showGroup {
-		f.cols++
-	}
-	for _, src := range args.Sources {
-		file, err := ipe.Read(fixInSrc(src))
-		if err != nil {
-			f.srcs = append(f.srcs, srcInfo{file, err, nil})
-		} else {
-			f.getDir(file, 0)
-		}
-	}
+	f.cols = f.calculateCols()
 	return f
 }
 
-func (f *longFormatter) getDir(file ipe.File, depth uint8) {
-	fs := file.Children()
-	if fs == nil || len(fs) == 0 {
-		return
+func (f *longFormatter) getDir(file ipe.File, grid **gridt.Grid, corners []bool) {
+	*grid = gridt.New(gridt.LeftToRight, f.args.Separator)
+	f.appendSource(srcInfo{file, nil, *grid})
+	f.writeHeader(*grid)
+}
+
+func (f *longFormatter) getFile(file ipe.File, grid *gridt.Grid, corners []bool) {
+	f.writeAllButName(grid, file, f.getName(file))
+}
+
+func (f longFormatter) calculateCols() int {
+	cols := 3
+	if f.showInode {
+		cols++
 	}
-	grid := gridt.New(gridt.LeftToRight, f.args.Separator)
-	f.srcs = append(f.srcs, srcInfo{file, nil, grid})
-	if f.args.Sort != ArgSortNone {
-		sortFiles(fs, f.args.Sort)
+	if f.showAcc {
+		cols++
 	}
-	if f.args.DirsFirst {
-		sortDirsFirst(fs)
+	if f.showMod {
+		cols++
 	}
-	if f.args.Reverse {
-		reverseFiles(fs)
+	if f.showCrt {
+		cols++
 	}
+	if f.showUser {
+		cols++
+	}
+	if f.showGroup {
+		cols++
+	}
+	return cols
+}
+
+func (f *longFormatter) writeHeader(grid *gridt.Grid) {
 	if f.args.Header {
 		f.write(
 			grid,
@@ -87,16 +80,9 @@ func (f *longFormatter) getDir(file ipe.File, depth uint8) {
 			ArgSortName,
 		)
 	}
-	for _, file := range fs {
-		f.getFile(file, grid, depth+1)
-	}
 }
 
-func (f *longFormatter) getFile(file ipe.File, grid *gridt.Grid, depth uint8) {
-	if !shouldShow(file, f.args) {
-		return
-	}
-
+func (f *longFormatter) writeAllButName(grid *gridt.Grid, file ipe.File, name string) {
 	f.write(
 		grid,
 		strconv.FormatUint(file.Inode(), 10),
@@ -107,15 +93,11 @@ func (f *longFormatter) getFile(file ipe.File, grid *gridt.Grid, depth uint8) {
 		fmtTime(file.CrtTime()),
 		file.User().Username,
 		file.Group().Name,
-		f.getName(file),
+		name,
 	)
-
-	if f.args.Recursive && file.IsDir() && (f.args.Depth == 0 || f.args.Depth >= depth) {
-		f.getDir(file, depth)
-	}
 }
 
-func (f longFormatter) write(grid *gridt.Grid, inode, mode, size, acc, mod, crt, user, group, name string) {
+func (f *longFormatter) write(grid *gridt.Grid, inode, mode, size, acc, mod, crt, user, group, name string) {
 	if f.showInode {
 		grid.Add(inode)
 	}
