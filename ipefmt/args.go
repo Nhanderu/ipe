@@ -28,6 +28,7 @@ type ArgsInfo struct {
 	Color     string
 	Classify  bool
 	Depth     uint8
+	DirsFirst bool
 	Filter    []*regexp.Regexp
 	Header    bool
 	Ignore    []*regexp.Regexp

@@ -177,6 +177,12 @@ func sortFiles(a []ipe.File, s string) {
 	})
 }
 
+func sortDirsFirst(a []ipe.File) {
+	sort.Slice(a, func(i, j int) bool {
+		return a[i].IsDir() || !a[j].IsDir()
+	})
+}
+
 func makeTree(corners []bool) string {
 	var s string
 	arrowTree := map[bool]map[bool]string{

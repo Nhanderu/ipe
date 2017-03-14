@@ -41,6 +41,8 @@ func parseArgs() (ipefmt.ArgsInfo, error) {
 	Flag("depth", "maximum depth of recursion").
 		Short('D').
 		Uint8Var(&args.Depth)
+	Flag("dirs-first", "").
+		BoolVar(&args.DirsFirst)
 	Flag("filter", "only show entries that matches the pattern").
 		Short('f').
 		RegexpListVar(&args.Filter)

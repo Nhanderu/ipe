@@ -36,6 +36,9 @@ func (f *longTreeFormatter) getDir(file ipe.File, grid *gridt.Grid, corners []bo
 	if f.args.Sort != ArgSortNone {
 		sortFiles(fs, f.args.Sort)
 	}
+	if f.args.DirsFirst {
+		sortDirsFirst(fs)
+	}
 	if f.args.Reverse {
 		reverseFiles(fs)
 	}

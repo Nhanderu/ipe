@@ -39,6 +39,9 @@ func (f *gridFormatter) getDir(file ipe.File, depth uint8) {
 	if f.args.Sort != ArgSortNone {
 		sortFiles(fs, f.args.Sort)
 	}
+	if f.args.DirsFirst {
+		sortDirsFirst(fs)
+	}
 	if f.args.Reverse {
 		reverseFiles(fs)
 	}
