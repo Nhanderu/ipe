@@ -7,7 +7,7 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
 ### To-do list
 
 - [x] List directory contents
-- [ ] Identify and organize column sizes in long views
+- [x] Identify and organize column sizes in long views
 - [ ] Make special features
   - [x] Tree view (-t)
   - [x] Separator of columns in long view (-S)
@@ -17,6 +17,11 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
   - [x] Flag to show headers on long view (-h)
   - [ ] Differentiate files types
   - [ ] Get inode, user and group in Windows
+  - [ ] Flag to show directories first (--dirs-first)
+  - [ ] Accept more than one value in filter and ignore flags
+  - [ ] Flag to show number of hard links in long view
+  - [ ] Flag to show number of file system blocks in long view
+  - [ ] Flag to show group in long view
 - [ ] Define colors
 - [ ] Add [Git integration][3]
   - [ ] Ignore "Git ignored" files by default
