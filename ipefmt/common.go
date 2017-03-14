@@ -2,37 +2,26 @@ package ipefmt
 
 import (
 	"bytes"
-	"fmt"
-	"os"
-	"runtime"
-	"strings"
-	"time"
 
 	"github.com/Nhanderu/gridt"
 	"github.com/Nhanderu/ipe"
 )
 
-const (
-	kilobyte = 1024
-	megabyte = kilobyte * 1024
-	gigabyte = megabyte * 1024
-	terabyte = gigabyte * 1024
-
-	osWindows = runtime.GOOS == "windows"
-)
-
+// srcInfo represents the common infomation for an output node.
 type srcInfo struct {
 	file ipe.File
 	err  error
 	grid *gridt.Grid
 }
 
+// commonFormatter represents the common infomation and methods for the formatters.
 type commonFormatter struct {
 	args ArgsInfo
 	srcs []srcInfo
 	cols int
 }
 
+// Format outputs the formatter into a correct string.
 func (f commonFormatter) String() string {
 	var buffer bytes.Buffer
 	writeNames := len(f.srcs) > 1
@@ -68,6 +57,7 @@ func (f commonFormatter) String() string {
 	return buffer.String()
 }
 
+// getName returns the name of the file, based on the arguments.
 func (f commonFormatter) getName(file ipe.File) string {
 	if f.args.Classify {
 		return file.ClassifiedName()
@@ -75,12 +65,13 @@ func (f commonFormatter) getName(file ipe.File) string {
 	return file.Name()
 }
 
+// appendSource appends another `srcInfo` to its list.
 func (f *commonFormatter) appendSource(src srcInfo) {
 	f.srcs = append(f.srcs, src)
 }
 
-// NewFormatter returns the correct formatter, based on the arguments.
-func NewFormatter(args ArgsInfo) fmt.Stringer {
+// Format formats the arguments into the correct output.
+func Format(args ArgsInfo) string {
 	var f formatter
 	if args.Long && args.Tree {
 		f = newLongTreeFormatter(args)
@@ -93,74 +84,5 @@ func NewFormatter(args ArgsInfo) fmt.Stringer {
 	}
 	var w formatterWrapper
 	w.read(f, args)
-	return w
-}
-
-func fmtSize(f ipe.File) string {
-	if !f.IsRegular() {
-		return "-"
-	}
-	s := f.Size()
-	if s < kilobyte {
-		return fmt.Sprintf("%dB", s)
-	}
-	if s < megabyte {
-		return fmt.Sprintf("%.1dKB", s/kilobyte)
-	}
-	if s < gigabyte {
-		return fmt.Sprintf("%.1dMB", s/megabyte)
-	}
-	if s < terabyte {
-		return fmt.Sprintf("%.1dGB", s/gigabyte)
-	}
-	return fmt.Sprintf("%.1dTB", s/terabyte)
-}
-
-func fmtTime(t time.Time) string {
-	year, month, day := t.Date()
-	str := fmt.Sprintf("%2d %s ", day, month.String()[:3])
-	if year == time.Now().Year() {
-		return fmt.Sprintf("%s%2d:%02d", str, t.Hour(), t.Minute())
-	}
-	return fmt.Sprintf("%s%d ", str, year)
-}
-
-func fixInSrc(src string) string {
-	if osWindows {
-		return strings.Replace(src, "~", os.Getenv("USERPROFILE"), -1)
-	}
-	return src
-}
-
-func makeTree(corners []bool) string {
-	var s string
-	arrowTree := map[bool]map[bool]string{
-		true: {
-			true:  "└──",
-			false: "   ",
-		}, false: {
-			true:  "├──",
-			false: "│  ",
-		},
-	}
-	for i, c := range corners {
-		s = fmt.Sprint(s, arrowTree[c][i+1 == len(corners)])
-	}
-	return s
-}
-
-func timesToShow(args ArgsInfo) (bool, bool, bool) {
-	var acc, mod, crt bool
-	for _, t := range args.Time {
-		if t == ArgTimeAcc {
-			acc = true
-		}
-		if t == ArgTimeMod {
-			mod = true
-		}
-		if t == ArgTimeCrt {
-			crt = true
-		}
-	}
-	return acc, mod, crt
+	return w.String()
 }
