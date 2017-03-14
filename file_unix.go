@@ -6,12 +6,35 @@ import (
 	"errors"
 	"os"
 	"os/user"
+	"runtime"
 	"strconv"
 	"syscall"
 	"time"
 )
 
-func newFile(dir string, fi os.FileInfo) (File, error) {
+func fileno(name string) int {
+	var fd int
+	for {
+		var err error
+		fd, err = syscall.Open(name, syscall.O_RDONLY|syscall.O_CLOEXEC, 0)
+		if err != nil {
+			if runtime.GOOS == "darwin" && err == syscall.EINTR {
+				continue
+			}
+			return -1
+		}
+		break
+	}
+
+	// TODO
+	// if !supportsCloseOnExec {
+	// 	syscall.CloseOnExec(fd)
+	// }
+
+	return fd
+}
+
+func newFile(dir string, fi os.FileInfo, fd int) (File, error) {
 	sys := fi.Sys().(*syscall.Stat_t)
 	if sys == nil {
 		return File{}, errors.New("invalid file attributes")
@@ -25,6 +48,7 @@ func newFile(dir string, fi os.FileInfo) (File, error) {
 		return File{}, err
 	}
 	return File{
+		fd,
 		fi.Name(),
 		dir,
 		fi.Size(),

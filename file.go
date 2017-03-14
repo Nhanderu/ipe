@@ -10,6 +10,7 @@ import (
 
 // File represents a file.
 type File struct {
+	fd      int
 	name    string
 	dir     string
 	size    int64
@@ -22,6 +23,9 @@ type File struct {
 	inode   uint64
 	sys     interface{}
 }
+
+// Fd returns the Handle (in Windows) or File Descriptor (in any other OS).
+func (f File) Fd() int { return f.fd }
 
 // Name returns the base name of the file.
 func (f File) Name() string { return f.name }
@@ -110,10 +114,7 @@ func (f File) Children() []File {
 	if !f.IsDir() {
 		return nil
 	}
-	fs, err := ReadDir(f.FullName())
-	if err != nil {
-		return nil
-	}
+	fs, _ := ReadDir(f.FullName())
 	return fs
 }
 
@@ -130,7 +131,7 @@ func ReadDir(path string) ([]File, error) {
 	}
 	files := make([]File, len(fis))
 	for i, fi := range fis {
-		file, err := newFile(path, fi)
+		file, err := newFile(path, fi, fileno(filepath.Join(path, fi.Name())))
 		if err != nil {
 			return nil, err
 		}
@@ -149,7 +150,7 @@ func Read(path string) (File, error) {
 	if err != nil {
 		return File{}, err
 	}
-	return newFile(filepath.Dir(path), fi)
+	return newFile(filepath.Dir(path), fi, int(f.Fd()))
 }
 
 func read(path string) (string, *os.File, error) {
