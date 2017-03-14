@@ -10,7 +10,6 @@ import (
 
 	"github.com/Nhanderu/gridt"
 	"github.com/Nhanderu/ipe"
-	"github.com/fatih/color"
 )
 
 const (
@@ -32,31 +31,6 @@ type commonFormatter struct {
 	args ArgsInfo
 	srcs []srcInfo
 	cols int
-}
-
-func (f commonFormatter) getName(file ipe.File) string {
-	if f.args.Classify {
-		return file.ClassifiedName()
-	}
-	return file.Name()
-}
-
-// NewFormatter returns the correct formatter, based on the arguments.
-func NewFormatter(args ArgsInfo) fmt.Stringer {
-	if args.Color != ArgColorAuto {
-		color.NoColor = args.Color == ArgColorNever
-	}
-
-	if args.Long && args.Tree {
-		return newLongTreeFormatter(args)
-	}
-	if args.Long {
-		return newLongFormatter(args)
-	}
-	if args.Tree {
-		return newTreeFormatter(args)
-	}
-	return newGridFormatter(args)
 }
 
 func (f commonFormatter) String() string {
@@ -94,10 +68,32 @@ func (f commonFormatter) String() string {
 	return buffer.String()
 }
 
-func shouldShow(f ipe.File, args ArgsInfo) bool {
-	return (args.All || !f.IsDotfile()) &&
-		(args.Ignore == nil || !args.Ignore.MatchString(f.Name())) &&
-		(args.Filter == nil || args.Filter.MatchString(f.Name()))
+func (f commonFormatter) getName(file ipe.File) string {
+	if f.args.Classify {
+		return file.ClassifiedName()
+	}
+	return file.Name()
+}
+
+func (f *commonFormatter) appendSource(src srcInfo) {
+	f.srcs = append(f.srcs, src)
+}
+
+// NewFormatter returns the correct formatter, based on the arguments.
+func NewFormatter(args ArgsInfo) fmt.Stringer {
+	var f formatter
+	if args.Long && args.Tree {
+		f = newLongTreeFormatter(args)
+	} else if args.Long {
+		f = newLongFormatter(args)
+	} else if args.Tree {
+		f = newTreeFormatter(args)
+	} else {
+		f = newGridFormatter(args)
+	}
+	var w formatterWrapper
+	w.read(f, args)
+	return w
 }
 
 func fmtSize(f ipe.File) string {
@@ -134,12 +130,6 @@ func fixInSrc(src string) string {
 		return strings.Replace(src, "~", os.Getenv("USERPROFILE"), -1)
 	}
 	return src
-}
-
-func reverse(a []ipe.File) {
-	for l, r := 0, len(a)-1; l < r; l, r = l+1, r-1 {
-		a[l], a[r] = a[r], a[l]
-	}
 }
 
 func makeTree(corners []bool) string {
