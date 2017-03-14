@@ -19,6 +19,7 @@ const (
 	ArgSortModified = "modified"
 	ArgSortCreated  = "created"
 	ArgSortUser     = "user"
+	ArgSortGroup    = "group"
 	ArgSortName     = "name"
 )
 
@@ -30,6 +31,7 @@ type ArgsInfo struct {
 	Depth     uint8
 	DirsFirst bool
 	Filter    []*regexp.Regexp
+	Group     bool
 	Header    bool
 	Ignore    []*regexp.Regexp
 	Inode     bool

@@ -169,6 +169,8 @@ func sortFiles(a []ipe.File, s string) {
 			return a[i].CrtTime().Unix() < a[j].CrtTime().Unix()
 		case ArgSortUser:
 			return a[i].User().Uid < a[j].User().Uid
+		case ArgSortGroup:
+			return a[i].Group().Gid < a[j].Group().Gid
 		case ArgSortName:
 			return a[i].Name() < a[j].Name()
 		default:

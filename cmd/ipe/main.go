@@ -55,6 +55,10 @@ func parseArgs() (ipefmt.ArgsInfo, error) {
 		Short('f').
 		RegexpListVar(&args.Filter)
 
+	Flag("group", "show group alongside user").
+		Short('g').
+		BoolVar(&args.Group)
+
 	Flag("header", "show columns headers for long view").
 		Short('h').
 		BoolVar(&args.Header)

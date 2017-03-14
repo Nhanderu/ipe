@@ -14,10 +14,19 @@ type longFormatter struct {
 	showCrt   bool
 	showInode bool
 	showUser  bool
+	showGroup bool
 }
 
 func newLongFormatter(args ArgsInfo) *longFormatter {
-	f := &longFormatter{commonFormatter{args, make([]srcInfo, 0), 3}, false, false, false, args.Inode && !osWindows, !osWindows}
+	f := &longFormatter{
+		commonFormatter{args, make([]srcInfo, 0), 3},
+		false,
+		false,
+		false,
+		args.Inode && !osWindows,
+		!osWindows,
+		args.Group && !osWindows,
+	}
 	f.showAcc, f.showMod, f.showCrt = timesToShow(args)
 	if f.showInode {
 		f.cols++
@@ -32,6 +41,9 @@ func newLongFormatter(args ArgsInfo) *longFormatter {
 		f.cols++
 	}
 	if f.showUser {
+		f.cols++
+	}
+	if f.showGroup {
 		f.cols++
 	}
 	for _, src := range args.Sources {
@@ -71,6 +83,7 @@ func (f *longFormatter) getDir(file ipe.File, depth uint8) {
 			ArgSortModified,
 			ArgSortCreated,
 			ArgSortUser,
+			ArgSortGroup,
 			ArgSortName,
 		)
 	}
@@ -93,6 +106,7 @@ func (f *longFormatter) getFile(file ipe.File, grid *gridt.Grid, depth uint8) {
 		fmtTime(file.ModTime()),
 		fmtTime(file.CrtTime()),
 		file.User().Username,
+		file.Group().Name,
 		f.getName(file),
 	)
 
@@ -101,7 +115,7 @@ func (f *longFormatter) getFile(file ipe.File, grid *gridt.Grid, depth uint8) {
 	}
 }
 
-func (f longFormatter) write(grid *gridt.Grid, inode, mode, size, acc, mod, crt, user, name string) {
+func (f longFormatter) write(grid *gridt.Grid, inode, mode, size, acc, mod, crt, user, group, name string) {
 	if f.showInode {
 		grid.Add(inode)
 	}
@@ -118,6 +132,9 @@ func (f longFormatter) write(grid *gridt.Grid, inode, mode, size, acc, mod, crt,
 	}
 	if f.showUser {
 		grid.Add(user)
+	}
+	if f.showGroup {
+		grid.Add(group)
 	}
 	grid.Add(name)
 }
