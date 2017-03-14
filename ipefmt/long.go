@@ -52,20 +52,23 @@ func (f *longFormatter) getDir(file ipe.File, depth uint8) {
 	}
 	grid := gridt.New(gridt.LeftToRight, f.args.Separator)
 	f.srcs = append(f.srcs, srcInfo{file, nil, grid})
+	if f.args.Sort != ArgSortNone {
+		sortFiles(fs, f.args.Sort)
+	}
 	if f.args.Reverse {
-		reverse(fs)
+		reverseFiles(fs)
 	}
 	if f.args.Header {
 		f.write(
 			grid,
-			"inode",
-			"mode",
-			"size",
-			"accessed",
-			"modified",
-			"created",
-			"user",
-			"file name",
+			ArgSortInode,
+			ArgSortMode,
+			ArgSortSize,
+			ArgSortAccessed,
+			ArgSortModified,
+			ArgSortCreated,
+			ArgSortUser,
+			ArgSortName,
 		)
 	}
 	for _, file := range fs {

@@ -12,13 +12,13 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
   - [x] Tree view (-t)
   - [x] Separator of columns in long view (-S)
   - [x] Flag to specify maximum depth of recursion (-D)
-  - [ ] Flag to sort by an column/field (-s)
+  - [x] Flag to sort by an column/field (-s)
   - [x] Flag to filter entries (-f)
   - [x] Flag to show headers on long view (-h)
   - [ ] Differentiate files types
   - [ ] Get inode, user and group in Windows
   - [ ] Flag to show directories first (--dirs-first)
-  - [ ] Accept more than one value in filter and ignore flags
+  - [x] Accept more than one value in filter and ignore flags
   - [ ] Flag to show number of hard links in long view
   - [ ] Flag to show number of file system blocks in long view
   - [ ] Flag to show group in long view

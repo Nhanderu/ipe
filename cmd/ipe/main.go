@@ -23,10 +23,6 @@ func parseArgs() (ipefmt.ArgsInfo, error) {
 	Arg("sources", "the directory to list contents").
 		Default(".").
 		StringsVar(&args.Sources)
-	Flag("separator", "separator of the columns").
-		Short('S').
-		Default("  ").
-		StringVar(&args.Separator)
 	Flag("across", "writes the entries by lines instead of by columns").
 		Short('x').
 		BoolVar(&args.Across)
@@ -35,7 +31,10 @@ func parseArgs() (ipefmt.ArgsInfo, error) {
 		BoolVar(&args.All)
 	Flag("color", "control whether color is used to distinguish file types").
 		Default(ipefmt.ArgColorAuto).
-		EnumVar(&args.Color, ipefmt.ArgColorNever, ipefmt.ArgColorAlways, ipefmt.ArgColorAuto)
+		EnumVar(&args.Color,
+			ipefmt.ArgColorNever,
+			ipefmt.ArgColorAlways,
+			ipefmt.ArgColorAuto)
 	Flag("classify", "append indicator to the entries").
 		Short('F').
 		BoolVar(&args.Classify)
@@ -44,13 +43,13 @@ func parseArgs() (ipefmt.ArgsInfo, error) {
 		Uint8Var(&args.Depth)
 	Flag("filter", "only show entries that matches the pattern").
 		Short('f').
-		RegexpVar(&args.Filter)
+		RegexpListVar(&args.Filter)
 	Flag("header", "show columns headers for long view").
 		Short('h').
 		BoolVar(&args.Header)
 	Flag("ignore", "do not show entries that matches the pattern").
 		Short('I').
-		RegexpVar(&args.Ignore)
+		RegexpListVar(&args.Ignore)
 	Flag("inode", "show entry inode").
 		Short('i').
 		BoolVar(&args.Inode)
@@ -66,10 +65,30 @@ func parseArgs() (ipefmt.ArgsInfo, error) {
 	Flag("recursive", "list subdirectories recursively").
 		Short('R').
 		BoolVar(&args.Recursive)
+	Flag("sort", "").
+		Short('s').
+		Default(ipefmt.ArgSortNone).
+		EnumVar(&args.Sort,
+			ipefmt.ArgSortNone,
+			ipefmt.ArgSortInode,
+			ipefmt.ArgSortMode,
+			ipefmt.ArgSortSize,
+			ipefmt.ArgSortAccessed,
+			ipefmt.ArgSortModified,
+			ipefmt.ArgSortCreated,
+			ipefmt.ArgSortUser,
+			ipefmt.ArgSortName)
+	Flag("separator", "separator of the columns").
+		Short('S').
+		Default("  ").
+		StringVar(&args.Separator)
 	Flag("time", "define which timestamps to show").
 		Short('T').
 		Default(ipefmt.ArgTimeMod).
-		EnumsVar(&args.Time, ipefmt.ArgTimeAcc, ipefmt.ArgTimeMod, ipefmt.ArgTimeCrt)
+		EnumsVar(&args.Time,
+			ipefmt.ArgTimeAcc,
+			ipefmt.ArgTimeMod,
+			ipefmt.ArgTimeCrt)
 	Flag("tree", "shows the entries in the tree view").
 		Short('t').
 		BoolVar(&args.Tree)

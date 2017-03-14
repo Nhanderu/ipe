@@ -34,14 +34,14 @@ func (f *gridFormatter) getDir(file ipe.File, depth uint8) {
 	if fs == nil || len(fs) == 0 {
 		return
 	}
-
 	grid := gridt.New(f.direction, f.args.Separator)
 	f.srcs = append(f.srcs, srcInfo{file, nil, grid})
-
-	if f.args.Reverse {
-		reverse(fs)
+	if f.args.Sort != ArgSortNone {
+		sortFiles(fs, f.args.Sort)
 	}
-
+	if f.args.Reverse {
+		reverseFiles(fs)
+	}
 	for _, file := range fs {
 		f.getFile(file, grid, depth+1)
 	}

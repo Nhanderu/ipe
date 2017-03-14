@@ -27,13 +27,14 @@ func (f *treeFormatter) getDir(file ipe.File, grid *gridt.Grid, corners []bool) 
 	if fs == nil || len(fs) == 0 {
 		return
 	}
-
 	if len(corners) == 0 {
 		f.srcs = append(f.srcs, srcInfo{file, nil, grid})
 	}
-
+	if f.args.Sort != ArgSortNone {
+		sortFiles(fs, f.args.Sort)
+	}
 	if f.args.Reverse {
-		reverse(fs)
+		reverseFiles(fs)
 	}
 	for ii, file := range fs {
 		f.getFile(file, grid, append(corners, ii+1 == len(fs)))

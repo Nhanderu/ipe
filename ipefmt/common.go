@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"sort"
 	"strings"
 	"time"
 
@@ -94,10 +95,18 @@ func (f commonFormatter) String() string {
 	return buffer.String()
 }
 
-func shouldShow(f ipe.File, args ArgsInfo) bool {
-	return (args.All || !f.IsDotfile()) &&
-		(args.Ignore == nil || !args.Ignore.MatchString(f.Name())) &&
-		(args.Filter == nil || args.Filter.MatchString(f.Name()))
+func shouldShow(file ipe.File, args ArgsInfo) bool {
+	for _, f := range args.Filter {
+		if !f.MatchString(file.Name()) && !f.MatchString(file.FullName()) {
+			return false
+		}
+	}
+	for _, i := range args.Ignore {
+		if i.MatchString(file.Name()) || i.MatchString(file.FullName()) {
+			return false
+		}
+	}
+	return args.All || !file.IsDotfile()
 }
 
 func fmtSize(f ipe.File) string {
@@ -136,10 +145,36 @@ func fixInSrc(src string) string {
 	return src
 }
 
-func reverse(a []ipe.File) {
+func reverseFiles(a []ipe.File) {
 	for l, r := 0, len(a)-1; l < r; l, r = l+1, r-1 {
 		a[l], a[r] = a[r], a[l]
 	}
+}
+
+func sortFiles(a []ipe.File, s string) {
+	sort.Slice(a, func(i, j int) bool {
+		switch s {
+		case ArgSortInode:
+			return a[i].Inode() < a[j].Inode()
+		case ArgSortMode:
+			r := strings.NewReplacer("-", "")
+			return r.Replace(a[i].Mode().String()) < r.Replace(a[j].Mode().String())
+		case ArgSortSize:
+			return a[i].Size() < a[j].Size()
+		case ArgSortAccessed:
+			return a[i].AccTime().Unix() < a[j].AccTime().Unix()
+		case ArgSortModified:
+			return a[i].ModTime().Unix() < a[j].ModTime().Unix()
+		case ArgSortCreated:
+			return a[i].CrtTime().Unix() < a[j].CrtTime().Unix()
+		case ArgSortUser:
+			return a[i].User().Uid < a[j].User().Uid
+		case ArgSortName:
+			return a[i].Name() < a[j].Name()
+		default:
+			return true
+		}
+	})
 }
 
 func makeTree(corners []bool) string {
