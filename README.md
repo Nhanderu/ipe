@@ -14,7 +14,7 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
   - [x] Flag to specify maximum depth of recursion (-D)
   - [ ] Flag to sort by an column/field (-s)
   - [x] Flag to filter entries (-f)
-  - [ ] Flag to show headers on long view (-h)
+  - [x] Flag to show headers on long view (-h)
   - [ ] Differentiate files types
   - [ ] Get inode, user and group in Windows
 - [ ] Define colors

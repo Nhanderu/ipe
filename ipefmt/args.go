@@ -19,6 +19,7 @@ type ArgsInfo struct {
 	Classify  bool
 	Depth     uint8
 	Filter    *regexp.Regexp
+	Header    bool
 	Ignore    *regexp.Regexp
 	Inode     bool
 	Long      bool

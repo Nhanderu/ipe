@@ -45,6 +45,9 @@ func parseArgs() (ipefmt.ArgsInfo, error) {
 	Flag("filter", "only show entries that matches the pattern").
 		Short('f').
 		RegexpVar(&args.Filter)
+	Flag("header", "show columns headers for long view").
+		Short('h').
+		BoolVar(&args.Header)
 	Flag("ignore", "do not show entries that matches the pattern").
 		Short('I').
 		RegexpVar(&args.Ignore)

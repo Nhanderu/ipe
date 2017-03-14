@@ -9,14 +9,19 @@ import (
 
 type longTreeFormatter struct {
 	commonFormatter
-	showAcc bool
-	showMod bool
-	showCrt bool
+	showAcc   bool
+	showMod   bool
+	showCrt   bool
+	showInode bool
+	showUser  bool
 }
 
 func newLongTreeFormatter(args ArgsInfo) *longTreeFormatter {
-	acc, mod, crt := timesToShow(args)
-	f := &longTreeFormatter{commonFormatter{args, make([]srcInfo, 0), 3}, acc, mod, crt}
+	f := &longTreeFormatter{commonFormatter{args, make([]srcInfo, 0), 3}, false, false, false, args.Inode && !osWindows, !osWindows}
+	f.showAcc, f.showMod, f.showCrt = timesToShow(args)
+	if f.showInode {
+		f.cols++
+	}
 	if f.showAcc {
 		f.cols++
 	}
@@ -26,11 +31,8 @@ func newLongTreeFormatter(args ArgsInfo) *longTreeFormatter {
 	if f.showCrt {
 		f.cols++
 	}
-	if !osWindows {
+	if f.showUser {
 		f.cols++
-		if f.args.Inode {
-			f.cols++
-		}
 	}
 	for _, src := range args.Sources {
 		file, err := ipe.Read(fixInSrc(src))
@@ -64,7 +66,7 @@ func (f *longTreeFormatter) getFile(file ipe.File, grid *gridt.Grid, corners []b
 		return
 	}
 
-	if f.args.Inode && !osWindows {
+	if f.showInode {
 		grid.Add(strconv.FormatUint(file.Inode(), 10))
 	}
 	grid.Add(file.Mode().String())
@@ -78,7 +80,7 @@ func (f *longTreeFormatter) getFile(file ipe.File, grid *gridt.Grid, corners []b
 	if f.showCrt {
 		grid.Add(fmtTime(file.CrtTime()))
 	}
-	if !osWindows {
+	if f.showUser {
 		grid.Add(file.User().Username)
 	}
 	grid.Add(makeTree(corners) + f.getName(file))
