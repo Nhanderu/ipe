@@ -9,31 +9,11 @@ import (
 
 type longTreeFormatter struct {
 	commonFormatter
-	showAcc   bool
-	showMod   bool
-	showCrt   bool
-	showInode bool
-	showUser  bool
+	long *longFormatter
 }
 
 func newLongTreeFormatter(args ArgsInfo) *longTreeFormatter {
-	f := &longTreeFormatter{commonFormatter{args, make([]srcInfo, 0), 3}, false, false, false, args.Inode && !osWindows, !osWindows}
-	f.showAcc, f.showMod, f.showCrt = timesToShow(args)
-	if f.showInode {
-		f.cols++
-	}
-	if f.showAcc {
-		f.cols++
-	}
-	if f.showMod {
-		f.cols++
-	}
-	if f.showCrt {
-		f.cols++
-	}
-	if f.showUser {
-		f.cols++
-	}
+	f := &longTreeFormatter{commonFormatter{args, make([]srcInfo, 0), 3}, newLongFormatter(args)}
 	for _, src := range args.Sources {
 		file, err := ipe.Read(fixInSrc(src))
 		if err != nil {
@@ -66,24 +46,17 @@ func (f *longTreeFormatter) getFile(file ipe.File, grid *gridt.Grid, corners []b
 		return
 	}
 
-	if f.showInode {
-		grid.Add(strconv.FormatUint(file.Inode(), 10))
-	}
-	grid.Add(file.Mode().String())
-	grid.Add(fmtSize(file))
-	if f.showAcc {
-		grid.Add(fmtTime(file.AccTime()))
-	}
-	if f.showMod {
-		grid.Add(fmtTime(file.ModTime()))
-	}
-	if f.showCrt {
-		grid.Add(fmtTime(file.CrtTime()))
-	}
-	if f.showUser {
-		grid.Add(file.User().Username)
-	}
-	grid.Add(makeTree(corners) + f.getName(file))
+	f.long.write(
+		grid,
+		strconv.FormatUint(file.Inode(), 10),
+		file.Mode().String(),
+		fmtSize(file),
+		fmtTime(file.AccTime()),
+		fmtTime(file.ModTime()),
+		fmtTime(file.CrtTime()),
+		file.User().Username,
+		makeTree(corners)+f.getName(file),
+	)
 
 	if f.args.Recursive && file.IsDir() && (f.args.Depth == 0 || int(f.args.Depth) >= len(corners)) {
 		f.getDir(file, grid, corners)
