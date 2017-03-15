@@ -12,10 +12,8 @@ import (
 
 type formatter interface {
 	fmt.Stringer
-
 	getDir(file ipe.File, grid **gridt.Grid, corners []bool)
 	getFile(file ipe.File, grid *gridt.Grid, corners []bool)
-
 	appendSource(src srcInfo)
 }
 
@@ -24,13 +22,11 @@ type formatterWrapper struct {
 	args      ArgsInfo
 }
 
-func (f *formatterWrapper) read(formatter formatter, args ArgsInfo) {
-	f.formatter = formatter
-	f.args = args
-	if args.Color != ArgColorAuto {
-		color.NoColor = args.Color == ArgColorNever
+func (f *formatterWrapper) format() string {
+	if f.args.Color != ArgColorAuto {
+		color.NoColor = f.args.Color == ArgColorNever
 	}
-	for _, src := range args.Sources {
+	for _, src := range f.args.Sources {
 		file, err := ipe.Read(fixInSrc(src))
 		if err != nil {
 			f.formatter.appendSource(srcInfo{file, err, nil})
@@ -38,14 +34,18 @@ func (f *formatterWrapper) read(formatter formatter, args ArgsInfo) {
 			f.getDir(file, gridt.New(gridt.LeftToRight, f.args.Separator), []bool{})
 		}
 	}
+	return f.formatter.String()
 }
 
 func (f *formatterWrapper) getDir(file ipe.File, grid *gridt.Grid, corners []bool) {
+	// Gets all the files inside the directory.
 	fs := file.Children()
 	if fs == nil || len(fs) == 0 {
 		return
 	}
 	f.formatter.getDir(file, &grid, corners)
+
+	// Sorts the files, based on the flags.
 	if f.args.Sort != ArgSortNone {
 		sort.Slice(fs, func(i, j int) bool {
 			switch f.args.Sort {
@@ -83,12 +83,15 @@ func (f *formatterWrapper) getDir(file ipe.File, grid *gridt.Grid, corners []boo
 			fs[l], fs[r] = fs[r], fs[l]
 		}
 	}
+
+	// Formats every file.
 	for i, child := range fs {
 		f.getFile(child, grid, append(corners, i+1 == len(fs)))
 	}
 }
 
 func (f *formatterWrapper) getFile(file ipe.File, grid *gridt.Grid, corners []bool) {
+	// Validates, if the file should really appear, based on the flags.
 	for _, f := range f.args.Filter {
 		if !f.MatchString(file.Name()) && !f.MatchString(file.FullName()) {
 			return
@@ -103,11 +106,18 @@ func (f *formatterWrapper) getFile(file ipe.File, grid *gridt.Grid, corners []bo
 		return
 	}
 
+	// Adds the files to the specific formatter.
 	f.formatter.getFile(file, grid, corners)
 
+	// Recurses.
 	if f.args.Recursive && file.IsDir() && (f.args.Depth == 0 || int(f.args.Depth) >= len(corners)) {
 		f.getDir(file, grid, corners)
 	}
 }
 
-func (f formatterWrapper) String() string { return f.formatter.String() }
+func wrap(formatter formatter, args ArgsInfo) *formatterWrapper {
+	var f formatterWrapper
+	f.formatter = formatter
+	f.args = args
+	return &f
+}

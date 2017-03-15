@@ -72,17 +72,14 @@ func (f *commonFormatter) appendSource(src srcInfo) {
 
 // Format formats the arguments into the correct output.
 func Format(args ArgsInfo) string {
-	var f formatter
 	if args.Long && args.Tree {
-		f = newLongTreeFormatter(args)
-	} else if args.Long {
-		f = newLongFormatter(args)
-	} else if args.Tree {
-		f = newTreeFormatter(args)
-	} else {
-		f = newGridFormatter(args)
+		return wrap(newLongTreeFormatter(args), args).format()
 	}
-	var w formatterWrapper
-	w.read(f, args)
-	return w.String()
+	if args.Long {
+		return wrap(newLongFormatter(args), args).format()
+	}
+	if args.Tree {
+		return wrap(newTreeFormatter(args), args).format()
+	}
+	return wrap(newGridFormatter(args), args).format()
 }
