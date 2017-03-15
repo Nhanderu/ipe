@@ -19,18 +19,18 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
   - [x] Flag to filter entries (-f)
   - [x] Flag to show headers on long view (-h)
   - [ ] Differentiate files types
-  - [ ] Get inode, user and group in Windows
   - [x] Flag to show directories first (--dirs-first)
   - [x] Accept more than one value in filter and ignore flags
-  - [x] Flag to show number of hard links in long view
-  - [x] Flag to show number of file system blocks in long view
-  - [x] Flag to show group in long view
+  - [x] Flag to show number of hard links in long view (--links)
+  - [x] Flag to show number of file system blocks in long view (--blocks)
+  - [x] Flag to show group in long view (--group)
 - [ ] Define colors
 - [ ] Add [Git integration][3]
   - [ ] Ignore "Git ignored" files by default
   - [ ] Show files' Git status
 - [x] Change it into a lib
 - [x] Create formatters
+- [ ] Get inode, user and group in Windows
 
 ### License
 
