@@ -31,6 +31,7 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
 - [x] Change it into a lib
 - [x] Create formatters
 - [ ] Get inode, user and group in Windows
+- [ ] Define column alignment in long view
 
 ### License
 
