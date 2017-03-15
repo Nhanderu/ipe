@@ -33,8 +33,14 @@ const (
 	// It means the output will be sorted by mode.
 	ArgSortMode = "mode"
 	// ArgSortSize represents an option for the `sort` flag.
-	// It means the output will be sorted by size time.
+	// It means the output will be sorted by size.
 	ArgSortSize = "size"
+	// ArgSortLinks represents an option for the `sort` flag.
+	// It means the output will be sorted by link.
+	ArgSortLinks = "link"
+	// ArgSortBlocks represents an option for the `sort` flag.
+	// It means the output will be sorted by blocks.
+	ArgSortBlocks = "blocks"
 	// ArgSortAccessed represents an option for the `sort` flag.
 	// It means the output will be sorted by accessed time.
 	ArgSortAccessed = "accessed"
@@ -59,6 +65,7 @@ const (
 type ArgsInfo struct {
 	Across    bool
 	All       bool
+	Blocks    bool
 	Color     string
 	Classify  bool
 	Depth     uint8
@@ -68,6 +75,7 @@ type ArgsInfo struct {
 	Header    bool
 	Ignore    []*regexp.Regexp
 	Inode     bool
+	Links     bool
 	Long      bool
 	OneLine   bool
 	Reverse   bool

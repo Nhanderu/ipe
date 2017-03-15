@@ -59,6 +59,8 @@ func newFile(dir string, fi os.FileInfo, fd int) (File, error) {
 		u,
 		g,
 		sys.Ino,
+		sys.Nlink,
+		sys.Blocks,
 		sys,
 	}, nil
 }

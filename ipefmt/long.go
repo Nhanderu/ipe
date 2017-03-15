@@ -9,17 +9,22 @@ import (
 
 type longFormatter struct {
 	*commonFormatter
-	showAcc   bool
-	showMod   bool
-	showCrt   bool
-	showInode bool
-	showUser  bool
-	showGroup bool
+
+	showLinks  bool
+	showBlocks bool
+	showAcc    bool
+	showMod    bool
+	showCrt    bool
+	showInode  bool
+	showUser   bool
+	showGroup  bool
 }
 
 func newLongFormatter(args ArgsInfo) *longFormatter {
 	f := &longFormatter{
 		&commonFormatter{args, make([]srcInfo, 0), 0},
+		!osWindows,
+		!osWindows,
 		false,
 		false,
 		false,
@@ -72,6 +77,8 @@ func (f *longFormatter) writeHeader(grid *gridt.Grid) {
 			ArgSortInode,
 			ArgSortMode,
 			ArgSortSize,
+			ArgSortLinks,
+			ArgSortBlocks,
 			ArgSortAccessed,
 			ArgSortModified,
 			ArgSortCreated,
@@ -88,6 +95,8 @@ func (f *longFormatter) writeAllButName(grid *gridt.Grid, file ipe.File, name st
 		strconv.FormatUint(file.Inode(), 10),
 		file.Mode().String(),
 		fmtSize(file),
+		strconv.FormatUint(file.Links(), 10),
+		strconv.FormatInt(file.Blocks(), 10),
 		fmtTime(file.AccTime()),
 		fmtTime(file.ModTime()),
 		fmtTime(file.CrtTime()),
@@ -97,12 +106,18 @@ func (f *longFormatter) writeAllButName(grid *gridt.Grid, file ipe.File, name st
 	)
 }
 
-func (f *longFormatter) write(grid *gridt.Grid, inode, mode, size, acc, mod, crt, user, group, name string) {
+func (f *longFormatter) write(grid *gridt.Grid, inode, mode, size, link, block, acc, mod, crt, user, group, name string) {
 	if f.showInode {
 		grid.Add(inode)
 	}
 	grid.Add(mode)
 	grid.Add(size)
+	if f.showLinks {
+		grid.Add(link)
+	}
+	if f.showBlocks {
+		grid.Add(block)
+	}
 	if f.showAcc {
 		grid.Add(acc)
 	}

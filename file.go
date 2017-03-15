@@ -21,6 +21,8 @@ type File struct {
 	user    *user.User
 	group   *user.Group
 	inode   uint64
+	links   uint64
+	blocks  int64
 	sys     interface{}
 }
 
@@ -105,6 +107,12 @@ func (f File) Group() *user.Group { return f.group }
 
 // Inode returns the file inode.
 func (f File) Inode() uint64 { return f.inode }
+
+// Links returns the number of hard links.
+func (f File) Links() uint64 { return f.links }
+
+// Blocks returns the number of file system blocks.
+func (f File) Blocks() int64 { return f.blocks }
 
 // Sys represents the underlying data source of the file.
 func (f File) Sys() interface{} { return f.sys }

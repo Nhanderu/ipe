@@ -22,8 +22,8 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
   - [ ] Get inode, user and group in Windows
   - [x] Flag to show directories first (--dirs-first)
   - [x] Accept more than one value in filter and ignore flags
-  - [ ] Flag to show number of hard links in long view
-  - [ ] Flag to show number of file system blocks in long view
+  - [x] Flag to show number of hard links in long view
+  - [x] Flag to show number of file system blocks in long view
   - [x] Flag to show group in long view
 - [ ] Define colors
 - [ ] Add [Git integration][3]

@@ -39,6 +39,8 @@ func newFile(dir string, fi os.FileInfo, fd int) (File, error) {
 		&user.User{},  // That's a problem.
 		&user.Group{}, // That's a problem.
 		0,             // That's a problem.
+		0,             // That's not a problem.
+		0,             // That's not a problem.
 		sys,
 	}, nil
 }

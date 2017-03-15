@@ -33,6 +33,9 @@ func parseArgs() (ipefmt.ArgsInfo, error) {
 		Short('a').
 		BoolVar(&args.All)
 
+	kingpin.Flag("blocks", "shows the number of file system blocks in long view").
+		BoolVar(&args.Blocks)
+
 	kingpin.Flag("color", "controls whether color is used").
 		Default(ipefmt.ArgColorAuto).
 		EnumVar(&args.Color,
@@ -70,6 +73,9 @@ func parseArgs() (ipefmt.ArgsInfo, error) {
 	kingpin.Flag("inode", "shows entry inode in long view").
 		Short('i').
 		BoolVar(&args.Inode)
+
+	kingpin.Flag("links", "shows the number of hard links in long view").
+		BoolVar(&args.Links)
 
 	kingpin.Flag("long", "display entries in \"long view\"").
 		Short('l').
