@@ -21,7 +21,7 @@ const (
 )
 
 func fmtSize(f ipe.File) string {
-	if !f.IsRegular() {
+	if f.IsDir() {
 		return "-"
 	}
 	s := f.Size()
