@@ -10,12 +10,12 @@ import (
 type longFormatter struct {
 	*commonFormatter
 
+	showInode  bool
 	showLinks  bool
 	showBlocks bool
 	showAcc    bool
 	showMod    bool
 	showCrt    bool
-	showInode  bool
 	showUser   bool
 	showGroup  bool
 }
@@ -23,12 +23,12 @@ type longFormatter struct {
 func newLongFormatter(args ArgsInfo) *longFormatter {
 	f := &longFormatter{
 		&commonFormatter{args, make([]srcInfo, 0), 0},
-		!osWindows,
-		!osWindows,
-		false,
-		false,
-		false,
 		args.Inode && !osWindows,
+		args.Links && !osWindows,
+		args.Blocks && !osWindows,
+		false,
+		false,
+		false,
 		!osWindows,
 		args.Group && !osWindows,
 	}
@@ -50,6 +50,12 @@ func (f *longFormatter) getFile(file ipe.File, grid *gridt.Grid, corners []bool)
 func (f longFormatter) calculateCols() int {
 	cols := 3
 	if f.showInode {
+		cols++
+	}
+	if f.showLinks {
+		cols++
+	}
+	if f.showBlocks {
 		cols++
 	}
 	if f.showAcc {
@@ -106,17 +112,17 @@ func (f *longFormatter) writeAllButName(grid *gridt.Grid, file ipe.File, name st
 	)
 }
 
-func (f *longFormatter) write(grid *gridt.Grid, inode, mode, size, link, block, acc, mod, crt, user, group, name string) {
+func (f *longFormatter) write(grid *gridt.Grid, inode, mode, size, links, blocks, acc, mod, crt, user, group, name string) {
 	if f.showInode {
 		grid.Add(inode)
 	}
 	grid.Add(mode)
 	grid.Add(size)
 	if f.showLinks {
-		grid.Add(link)
+		grid.Add(links)
 	}
 	if f.showBlocks {
-		grid.Add(block)
+		grid.Add(blocks)
 	}
 	if f.showAcc {
 		grid.Add(acc)

@@ -37,7 +37,7 @@ const (
 	ArgSortSize = "size"
 	// ArgSortLinks represents an option for the `sort` flag.
 	// It means the output will be sorted by link.
-	ArgSortLinks = "link"
+	ArgSortLinks = "links"
 	// ArgSortBlocks represents an option for the `sort` flag.
 	// It means the output will be sorted by blocks.
 	ArgSortBlocks = "blocks"
