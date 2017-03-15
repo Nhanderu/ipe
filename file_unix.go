@@ -13,25 +13,16 @@ import (
 )
 
 func fileno(name string) int {
-	var fd int
 	for {
-		var err error
-		fd, err = syscall.Open(name, syscall.O_RDONLY|syscall.O_CLOEXEC, 0)
+		fd, err := syscall.Open(name, syscall.O_RDONLY|syscall.O_CLOEXEC, 0)
 		if err != nil {
 			if runtime.GOOS == "darwin" && err == syscall.EINTR {
 				continue
 			}
 			return -1
 		}
-		break
+		return fd
 	}
-
-	// TODO
-	// if !supportsCloseOnExec {
-	// 	syscall.CloseOnExec(fd)
-	// }
-
-	return fd
 }
 
 func newFile(dir string, fi os.FileInfo, fd int) (File, error) {
