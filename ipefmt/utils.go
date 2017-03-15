@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -37,6 +38,13 @@ func fmtSize(f ipe.File) string {
 		return fmt.Sprintf("%.1dGB", s/gigabyte)
 	}
 	return fmt.Sprintf("%.1dTB", s/terabyte)
+}
+
+func fmtBlocks(f ipe.File) string {
+	if f.IsDir() {
+		return "-"
+	}
+	return strconv.FormatInt(f.Blocks(), 10)
 }
 
 func fmtTime(t time.Time) string {

@@ -102,7 +102,7 @@ func (f *longFormatter) writeAllButName(grid *gridt.Grid, file ipe.File, name st
 		file.Mode().String(),
 		fmtSize(file),
 		strconv.FormatUint(file.Links(), 10),
-		strconv.FormatInt(file.Blocks(), 10),
+		fmtBlocks(file),
 		fmtTime(file.AccTime()),
 		fmtTime(file.ModTime()),
 		fmtTime(file.CrtTime()),
