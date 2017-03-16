@@ -6,7 +6,7 @@ import (
 
 	"github.com/Nhanderu/ipe/ipefmt"
 	"github.com/Nhanderu/trena"
-	"github.com/alecthomas/kingpin"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func main() {
@@ -18,7 +18,7 @@ func main() {
 	_, err = ipefmt.NewFormatter(args).WriteTo(os.Stdout)
 	if err != nil {
 		os.Stderr.WriteString(err.Error())
-		os.Exit(int(err.(syscall.Errno)))
+		os.Exit(1)
 	}
 }
 
@@ -42,6 +42,7 @@ func parseArgs() (ipefmt.ArgsInfo, error) {
 
 	kingpin.Flag("color", "controls whether color is used").
 		Default(ipefmt.ArgColorAuto).
+		PlaceHolder("WHEN").
 		EnumVar(&args.Color,
 			ipefmt.ArgColorNever,
 			ipefmt.ArgColorAlways,
@@ -53,6 +54,7 @@ func parseArgs() (ipefmt.ArgsInfo, error) {
 
 	kingpin.Flag("depth", "defines maximum depth of recursion").
 		Short('D').
+		PlaceHolder("LEVELS").
 		Uint8Var(&args.Depth)
 
 	kingpin.Flag("dirs-first", "shows directories first").
@@ -60,6 +62,7 @@ func parseArgs() (ipefmt.ArgsInfo, error) {
 
 	kingpin.Flag("filter", "shows only the entries that matches the pattern").
 		Short('f').
+		PlaceHolder("PATTERN").
 		RegexpListVar(&args.Filter)
 
 	kingpin.Flag("group", "shows group alongside user").
@@ -67,11 +70,12 @@ func parseArgs() (ipefmt.ArgsInfo, error) {
 		BoolVar(&args.Group)
 
 	kingpin.Flag("header", "shows columns headers in long view").
-		Short('h').
+		Short('H').
 		BoolVar(&args.Header)
 
 	kingpin.Flag("ignore", "hides every entry that matches the pattern").
 		Short('I').
+		PlaceHolder("PATTERN").
 		RegexpListVar(&args.Ignore)
 
 	kingpin.Flag("inode", "shows entry inode in long view").
@@ -97,9 +101,10 @@ func parseArgs() (ipefmt.ArgsInfo, error) {
 		Short('R').
 		BoolVar(&args.Recursive)
 
-	kingpin.Flag("sort", "defines the field to sort by").
+	kingpin.Flag("sort", "defines the field/column to sort by").
 		Short('s').
 		Default(ipefmt.ArgSortNone).
+		PlaceHolder("COLUMN").
 		EnumVar(&args.Sort,
 			ipefmt.ArgSortNone,
 			ipefmt.ArgSortInode,
@@ -114,11 +119,13 @@ func parseArgs() (ipefmt.ArgsInfo, error) {
 	kingpin.Flag("separator", "defines the separator of the columns").
 		Short('S').
 		Default("  ").
+		PlaceHolder("STRING").
 		StringVar(&args.Separator)
 
 	kingpin.Flag("time", "defines which timestamps to show").
 		Short('T').
 		Default(ipefmt.ArgTimeMod).
+		PlaceHolder("TIMESTAMP").
 		EnumsVar(&args.Time,
 			ipefmt.ArgTimeAcc,
 			ipefmt.ArgTimeMod,
@@ -127,6 +134,8 @@ func parseArgs() (ipefmt.ArgsInfo, error) {
 	kingpin.Flag("tree", "display entries in \"tree view\"").
 		Short('t').
 		BoolVar(&args.Tree)
+
+	kingpin.CommandLine.HelpFlag.Short('h')
 
 	kingpin.Parse()
 	var err error
