@@ -15,7 +15,11 @@ func main() {
 		os.Stderr.WriteString(err.Error())
 		os.Exit(int(err.(syscall.Errno)))
 	}
-	os.Stdout.WriteString(ipefmt.Format(args))
+	_, err = ipefmt.NewFormatter(args).WriteTo(os.Stdout)
+	if err != nil {
+		os.Stderr.WriteString(err.Error())
+		os.Exit(int(err.(syscall.Errno)))
+	}
 }
 
 func parseArgs() (ipefmt.ArgsInfo, error) {

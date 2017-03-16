@@ -99,10 +99,10 @@ func (f File) IsRegular() bool { return f.mode&os.ModeType == 0 }
 // IsDotfile reports whether `f` describes a dotfile.
 func (f File) IsDotfile() bool { return f.name[0] == '.' }
 
-// User returns the user of the file.
+// User returns the user of the file's owner.
 func (f File) User() *user.User { return f.user }
 
-// Group returns the user group of the file.
+// Group returns the group of the file's owner.
 func (f File) Group() *user.Group { return f.group }
 
 // Inode returns the file inode.

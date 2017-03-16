@@ -1,7 +1,6 @@
 package ipefmt
 
 import (
-	"fmt"
 	"sort"
 	"strings"
 
@@ -10,40 +9,18 @@ import (
 	"github.com/fatih/color"
 )
 
-type formatter interface {
-	fmt.Stringer
-	getDir(file ipe.File, grid **gridt.Grid, corners []bool)
-	getFile(file ipe.File, grid *gridt.Grid, corners []bool)
-	appendSource(src srcInfo)
-}
-
 type formatterWrapper struct {
-	formatter formatter
-	args      ArgsInfo
+	Formatter
+	args ArgsInfo
 }
 
-func (f *formatterWrapper) format() string {
-	if f.args.Color != ArgColorAuto {
-		color.NoColor = f.args.Color == ArgColorNever
-	}
-	for _, src := range f.args.Sources {
-		file, err := ipe.Read(fixInSrc(src))
-		if err != nil {
-			f.formatter.appendSource(srcInfo{file, err, nil})
-		} else {
-			f.getDir(file, gridt.New(gridt.LeftToRight, f.args.Separator), []bool{})
-		}
-	}
-	return f.formatter.String()
-}
-
-func (f *formatterWrapper) getDir(file ipe.File, grid *gridt.Grid, corners []bool) {
+func (f *formatterWrapper) getDir(file ipe.File, grid **gridt.Grid, corners []bool) {
 	// Gets all the files inside the directory.
 	fs := file.Children()
 	if fs == nil || len(fs) == 0 {
 		return
 	}
-	f.formatter.getDir(file, &grid, corners)
+	f.Formatter.getDir(file, grid, corners)
 
 	// Sorts the files, based on the flags.
 	if f.args.Sort != ArgSortNone {
@@ -86,7 +63,7 @@ func (f *formatterWrapper) getDir(file ipe.File, grid *gridt.Grid, corners []boo
 
 	// Formats every file.
 	for i, child := range fs {
-		f.getFile(child, grid, append(corners, i+1 == len(fs)))
+		f.getFile(child, *grid, append(corners, i+1 == len(fs)))
 	}
 }
 
@@ -107,17 +84,29 @@ func (f *formatterWrapper) getFile(file ipe.File, grid *gridt.Grid, corners []bo
 	}
 
 	// Adds the files to the specific formatter.
-	f.formatter.getFile(file, grid, corners)
+	f.Formatter.getFile(file, grid, corners)
 
 	// Recurses.
 	if f.args.Recursive && file.IsDir() && (f.args.Depth == 0 || int(f.args.Depth) >= len(corners)) {
-		f.getDir(file, grid, corners)
+		f.getDir(file, &grid, corners)
 	}
 }
 
-func wrap(formatter formatter, args ArgsInfo) *formatterWrapper {
+func wrap(formatter Formatter, args ArgsInfo) *formatterWrapper {
 	var f formatterWrapper
-	f.formatter = formatter
+	f.Formatter = formatter
 	f.args = args
+	if f.args.Color != ArgColorAuto {
+		color.NoColor = f.args.Color == ArgColorNever
+	}
+	for _, src := range f.args.Sources {
+		file, err := ipe.Read(fixInSrc(src))
+		if err != nil {
+			f.Formatter.appendSource(srcInfo{file, err, nil})
+		} else {
+			g := gridt.New(gridt.LeftToRight, f.args.Separator)
+			f.getDir(file, &g, []bool{})
+		}
+	}
 	return &f
 }
