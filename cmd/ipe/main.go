@@ -5,7 +5,7 @@ import (
 	"syscall"
 
 	"github.com/Nhanderu/ipe/ipefmt"
-	"github.com/Nhanderu/trena"
+	"golang.org/x/crypto/ssh/terminal"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -139,6 +139,6 @@ func parseArgs() (ipefmt.ArgsInfo, error) {
 
 	kingpin.Parse()
 	var err error
-	args.Width, _, err = trena.Size()
+	args.Width, _, err = terminal.GetSize(int(os.Stdout.Fd()))
 	return args, err
 }
