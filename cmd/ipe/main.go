@@ -65,6 +65,9 @@ func parseArgs() (ipefmt.ArgsInfo, error) {
 		PlaceHolder("PATTERN").
 		RegexpListVar(&args.Filter)
 
+	kingpin.Flag("follow", "dereferences symbolic links").
+		BoolVar(&args.Follow)
+
 	kingpin.Flag("group", "shows group alongside user").
 		Short('g').
 		BoolVar(&args.Group)

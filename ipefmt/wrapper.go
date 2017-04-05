@@ -68,6 +68,15 @@ func (f *formatterWrapper) getDir(file ipe.File, grid **gridt.Grid, corners []bo
 }
 
 func (f *formatterWrapper) getFile(file ipe.File, grid *gridt.Grid, corners []bool) {
+	// Dereferences symbolic link if needed.
+	if f.args.Follow {
+		var err error
+		file, err = file.FollowLink()
+		if err != nil {
+			return
+		}
+	}
+
 	// Validates, if the file should really appear, based on the flags.
 	for _, f := range f.args.Filter {
 		if !f.MatchString(file.Name()) && !f.MatchString(file.FullName()) {

@@ -71,6 +71,7 @@ type ArgsInfo struct {
 	Depth     uint8
 	DirsFirst bool
 	Filter    []*regexp.Regexp
+	Follow    bool
 	Group     bool
 	Header    bool
 	Ignore    []*regexp.Regexp
