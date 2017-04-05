@@ -4,6 +4,8 @@ import (
 	"sort"
 	"strings"
 
+	"path/filepath"
+
 	"github.com/Nhanderu/gridt"
 	"github.com/Nhanderu/ipe"
 	"github.com/fatih/color"
@@ -11,7 +13,9 @@ import (
 
 type formatterWrapper struct {
 	Formatter
-	args ArgsInfo
+	args       ArgsInfo
+	filterGlob []string
+	ignoreGlob []string
 }
 
 func (f *formatterWrapper) getDir(file ipe.File, grid **gridt.Grid, corners []bool) {
@@ -69,13 +73,23 @@ func (f *formatterWrapper) getDir(file ipe.File, grid **gridt.Grid, corners []bo
 
 func (f *formatterWrapper) getFile(file ipe.File, grid *gridt.Grid, corners []bool) {
 	// Validates, if the file should really appear, based on the flags.
-	for _, f := range f.args.Filter {
-		if !f.MatchString(file.Name()) && !f.MatchString(file.FullName()) {
+	for _, re := range f.args.FilterRegex {
+		if !re.MatchString(file.Name()) && !re.MatchString(file.FullName()) {
 			return
 		}
 	}
-	for _, i := range f.args.Ignore {
-		if i.MatchString(file.Name()) || i.MatchString(file.FullName()) {
+	for _, g := range f.filterGlob {
+		if g != file.FullName() {
+			return
+		}
+	}
+	for _, re := range f.args.IgnoreRegex {
+		if re.MatchString(file.Name()) || re.MatchString(file.FullName()) {
+			return
+		}
+	}
+	for _, g := range f.ignoreGlob {
+		if g == file.FullName() {
 			return
 		}
 	}
@@ -96,6 +110,30 @@ func wrap(formatter Formatter, args ArgsInfo) *formatterWrapper {
 	var f formatterWrapper
 	f.Formatter = formatter
 	f.args = args
+	f.filterGlob = make([]string, 0)
+	for _, glob := range args.FilterGlob {
+		matches, err := filepath.Glob(glob)
+		if err == nil && matches != nil {
+			for _, match := range matches {
+				abs, err := filepath.Abs(match)
+				if err != nil {
+					f.filterGlob = append(f.filterGlob, abs)
+				}
+			}
+		}
+	}
+	f.ignoreGlob = make([]string, 0)
+	for _, glob := range args.IgnoreGlob {
+		matches, err := filepath.Glob(glob)
+		if err == nil && matches != nil {
+			for _, match := range matches {
+				abs, err := filepath.Abs(match)
+				if err != nil {
+					f.ignoreGlob = append(f.ignoreGlob, abs)
+				}
+			}
+		}
+	}
 	if f.args.Color != ArgColorAuto {
 		color.NoColor = f.args.Color == ArgColorNever
 	}

@@ -49,7 +49,6 @@ func parseArgs() (ipefmt.ArgsInfo, error) {
 			ipefmt.ArgColorAuto)
 
 	kingpin.Flag("classify", "appends indicator to the entries").
-		Short('F').
 		BoolVar(&args.Classify)
 
 	kingpin.Flag("depth", "defines maximum depth of recursion").
@@ -60,10 +59,15 @@ func parseArgs() (ipefmt.ArgsInfo, error) {
 	kingpin.Flag("dirs-first", "shows directories first").
 		BoolVar(&args.DirsFirst)
 
-	kingpin.Flag("filter", "shows only the entries that matches the pattern").
+	kingpin.Flag("filter-glob", "shows only the entries that matches the glob pattern").
 		Short('f').
 		PlaceHolder("PATTERN").
-		RegexpListVar(&args.Filter)
+		StringsVar(&args.FilterGlob)
+
+	kingpin.Flag("filter-regex", "shows only the entries that matches the regex pattern").
+		Short('F').
+		PlaceHolder("PATTERN").
+		RegexpListVar(&args.FilterRegex)
 
 	kingpin.Flag("group", "shows group alongside user").
 		Short('g').
@@ -73,13 +77,17 @@ func parseArgs() (ipefmt.ArgsInfo, error) {
 		Short('H').
 		BoolVar(&args.Header)
 
-	kingpin.Flag("ignore", "hides every entry that matches the pattern").
+	kingpin.Flag("ignore-glob", "hides every entry that matches the glob pattern").
+		Short('i').
+		PlaceHolder("PATTERN").
+		StringsVar(&args.IgnoreGlob)
+
+	kingpin.Flag("ignore-regex", "hides every entry that matches the regex pattern").
 		Short('I').
 		PlaceHolder("PATTERN").
-		RegexpListVar(&args.Ignore)
+		RegexpListVar(&args.IgnoreRegex)
 
 	kingpin.Flag("inode", "shows entry inode in long view").
-		Short('i').
 		BoolVar(&args.Inode)
 
 	kingpin.Flag("links", "shows the number of hard links in long view").

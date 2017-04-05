@@ -63,27 +63,29 @@ const (
 
 // ArgsInfo represents all the arguments it is needed for formatting.
 type ArgsInfo struct {
-	Across    bool
-	All       bool
-	Blocks    bool
-	Color     string
-	Classify  bool
-	Depth     uint8
-	DirsFirst bool
-	Filter    []*regexp.Regexp
-	Group     bool
-	Header    bool
-	Ignore    []*regexp.Regexp
-	Inode     bool
-	Links     bool
-	Long      bool
-	OneLine   bool
-	Reverse   bool
-	Recursive bool
-	Separator string
-	Sort      string
-	Sources   []string
-	Time      []string
-	Tree      bool
-	Width     int
+	Across      bool
+	All         bool
+	Blocks      bool
+	Color       string
+	Classify    bool
+	Depth       uint8
+	DirsFirst   bool
+	FilterGlob  []string
+	FilterRegex []*regexp.Regexp
+	Group       bool
+	Header      bool
+	IgnoreGlob  []string
+	IgnoreRegex []*regexp.Regexp
+	Inode       bool
+	Links       bool
+	Long        bool
+	OneLine     bool
+	Reverse     bool
+	Recursive   bool
+	Separator   string
+	Sort        string
+	Sources     []string
+	Time        []string
+	Tree        bool
+	Width       int
 }
