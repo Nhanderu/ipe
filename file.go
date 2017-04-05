@@ -1,11 +1,18 @@
 package ipe
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/user"
 	"path/filepath"
 	"time"
+)
+
+var (
+	// ErrNotSymlink is returned when the method expects a symbolic link,
+	// but the file is not.
+	ErrNotSymlink = errors.New("the file is not a symbolic link")
 )
 
 // File represents a file.
@@ -55,6 +62,19 @@ func (f File) FullName() string {
 
 // Size returns the length in bytes for regular files.
 func (f File) Size() int64 { return f.size }
+
+// DirSize return the length in bytes for all files inside
+// the directory, recursively.
+func (f File) DirSize() int64 {
+	if !f.IsDir() {
+		return f.Size()
+	}
+	var size int64
+	for _, file := range f.Children() {
+		size += file.DirSize()
+	}
+	return size
+}
 
 // ModTime returns the last modification time.
 func (f File) ModTime() time.Time { return f.modTime }
@@ -116,6 +136,19 @@ func (f File) Blocks() int64 { return f.blocks }
 
 // Sys represents the underlying data source of the file.
 func (f File) Sys() interface{} { return f.sys }
+
+// FollowLink returns the file that the symbolic link points to.
+// If the file is not a symbolic link, it returns `ErrNotSymlink`.
+func (f File) FollowLink() (File, error) {
+	if !f.IsSymlink() {
+		return File{}, ErrNotSymlink
+	}
+	path, err := os.Readlink(f.FullName())
+	if err != nil {
+		return File{}, err
+	}
+	return Read(path)
+}
 
 // Children opens a directory and reads its contents.
 func (f File) Children() []File {
