@@ -1,13 +1,15 @@
 # Ipê
 
-[![GoDoc][tag1img]][tag1link]
-[![Go Report Card][tag2img]][tag2link]
+[![License][badge-1-img]][badge-1-link]
+[![go.dev][badge-2-img]][badge-2-link]
+[![Go Report Card][badge-3-img]][badge-3-link]
 
-A replacement for `ls` with some special features, like tree view and Git integration. Works as terminal program or Go library.
+A replacement for `ls` with some special features, like tree view and Git
+integration. Works as terminal program or Go library.
 
 Inspired by [jacwah/oak][1] and [ogham/exa][2].
 
-### To-do list
+## To-do list
 
 - [x] List directory contents
 - [x] Identify and organize column sizes in long views
@@ -33,16 +35,18 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
 - [ ] Get inode, user and group in Windows
 - [ ] Define column alignment in long view
 
-### License
+## License
 
 This project code is in the public domain. See the [LICENSE file][4].
 
 [1]: https://github.com/jacwah/oak/
 [2]: https://github.com/ogham/exa/
 [3]: https://github.com/libgit2/git2go
-[4]: https://github.com/Nhanderu/ipe/blob/master/LICENSE
+[4]: ./LICENSE
 
-[tag1img]: https://godoc.org/github.com/Nhanderu/ipe?status.png
-[tag1link]: https://godoc.org/github.com/Nhanderu/ipe
-[tag2img]: https://goreportcard.com/badge/github.com/Nhanderu/ipe
-[tag2link]: https://goreportcard.com/report/github.com/Nhanderu/ipe
+[badge-1-img]: https://img.shields.io/github/license/Nhanderu/ipe?style=flat-square
+[badge-1-link]: https://github.com/Nhanderu/ipe/blob/master/LICENSE
+[badge-2-img]: https://img.shields.io/badge/go.dev-reference-007d9c?style=flat-square&logo=go&logoColor=white
+[badge-2-link]: https://pkg.go.dev/github.com/Nhanderu/ipe
+[badge-3-img]: https://goreportcard.com/badge/github.com/Nhanderu/ipe?style=flat-square
+[badge-3-link]: https://goreportcard.com/report/github.com/Nhanderu/ipe
