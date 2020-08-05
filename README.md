@@ -39,6 +39,12 @@ Inspired by [jacwah/oak][1] and [ogham/exa][2].
 
 This project code is in the public domain. See the [LICENSE file][4].
 
+### Contribution
+
+Unless you explicitly state otherwise, any contribution intentionally submitted
+for inclusion in the work by you shall be in the public domain, without any
+additional terms or conditions.
+
 [1]: https://github.com/jacwah/oak/
 [2]: https://github.com/ogham/exa/
 [3]: https://github.com/libgit2/git2go
