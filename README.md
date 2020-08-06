@@ -1,13 +1,19 @@
-# Ipê
+# Ipê (deprecated)
 
-[![License][badge-1-img]][badge-1-link]
-[![go.dev][badge-2-img]][badge-2-link]
-[![Go Report Card][badge-3-img]][badge-3-link]
+![Deprecated][badge-1-img]
+[![License][badge-2-img]][badge-2-link]
+[![go.dev][badge-3-img]][badge-3-link]
+[![Go Report Card][badge-4-img]][badge-4-link]
 
 A replacement for `ls` with some special features, like tree view and Git
 integration. Works as terminal program or Go library.
 
 Inspired by [jacwah/oak][1] and [ogham/exa][2].
+
+## Deprecated
+
+Don't use it! I made this code trying to learn Go but I never finished it and I
+don't see any reason for doing it now.
 
 ## To-do list
 
@@ -50,9 +56,10 @@ additional terms or conditions.
 [3]: https://github.com/libgit2/git2go
 [4]: ./LICENSE
 
-[badge-1-img]: https://img.shields.io/github/license/Nhanderu/ipe?style=flat-square
-[badge-1-link]: https://github.com/Nhanderu/ipe/blob/master/LICENSE
-[badge-2-img]: https://img.shields.io/badge/go.dev-reference-007d9c?style=flat-square&logo=go&logoColor=white
-[badge-2-link]: https://pkg.go.dev/github.com/Nhanderu/ipe
-[badge-3-img]: https://goreportcard.com/badge/github.com/Nhanderu/ipe?style=flat-square
-[badge-3-link]: https://goreportcard.com/report/github.com/Nhanderu/ipe
+[badge-1-img]: https://img.shields.io/badge/code-deprecated-critical?style=flat-square
+[badge-2-img]: https://img.shields.io/github/license/Nhanderu/ipe?style=flat-square
+[badge-2-link]: https://github.com/Nhanderu/ipe/blob/master/LICENSE
+[badge-3-img]: https://img.shields.io/badge/go.dev-reference-007d9c?style=flat-square&logo=go&logoColor=white
+[badge-3-link]: https://pkg.go.dev/github.com/Nhanderu/ipe
+[badge-4-img]: https://goreportcard.com/badge/github.com/Nhanderu/ipe?style=flat-square
+[badge-4-link]: https://goreportcard.com/report/github.com/Nhanderu/ipe
