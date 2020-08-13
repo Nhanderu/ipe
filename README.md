@@ -5,15 +5,15 @@
 [![go.dev][badge-3-img]][badge-3-link]
 [![Go Report Card][badge-4-img]][badge-4-link]
 
-A replacement for `ls` with some special features, like tree view and Git
-integration. Works as terminal program or Go library.
+A replacement for `ls` with some special features, like tree view and
+Git integration. Works as terminal program or Go library.
 
 Inspired by [jacwah/oak][1] and [ogham/exa][2].
 
 ## Deprecated
 
-Don't use it! I made this code trying to learn Go but I never finished it and I
-don't see any reason for doing it now.
+Don't use it! I made this code trying to learn Go but I never finished
+it and I don't see any reason for doing it now.
 
 ## To-do list
 
@@ -30,7 +30,8 @@ don't see any reason for doing it now.
   - [x] Flag to show directories first (--dirs-first)
   - [x] Accept more than one value in filter and ignore flags
   - [x] Flag to show number of hard links in long view (--links)
-  - [x] Flag to show number of file system blocks in long view (--blocks)
+  - [x] Flag to show number of file system blocks in long view
+  (--blocks)
   - [x] Flag to show group in long view (--group)
 - [ ] Define colors
 - [ ] Add [Git integration][3]
@@ -47,9 +48,9 @@ This project code is in the public domain. See the [LICENSE file][4].
 
 ### Contribution
 
-Unless you explicitly state otherwise, any contribution intentionally submitted
-for inclusion in the work by you shall be in the public domain, without any
-additional terms or conditions.
+Unless you explicitly state otherwise, any contribution intentionally
+submitted for inclusion in the work by you shall be in the public
+domain, without any additional terms or conditions.
 
 [1]: https://github.com/jacwah/oak/
 [2]: https://github.com/ogham/exa/
